@@ -1,0 +1,58 @@
+{
+    "name": "hazem-hammad/postman-clone",
+    "description": "A free, open-source Postman-like UI mounted into any Laravel application.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["laravel", "postman", "api", "developer-tools", "http-client"],
+    "authors": [
+        {
+            "name": "Hazem Hamaad",
+            "email": "hazem.hamaad@outlook.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "guzzlehttp/guzzle": "^7.8",
+        "illuminate/contracts": "^11.0|^12.0",
+        "illuminate/database": "^11.0|^12.0",
+        "illuminate/http": "^11.0|^12.0",
+        "illuminate/routing": "^11.0|^12.0",
+        "illuminate/support": "^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0|^10.0",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0",
+        "phpstan/phpstan": "^1.11"
+    },
+    "autoload": {
+        "psr-4": {
+            "HazemHammad\\PostmanClone\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HazemHammad\\PostmanClone\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "test:coverage": "pest --coverage",
+        "stan": "phpstan analyse"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "HazemHammad\\PostmanClone\\PostmanCloneServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
