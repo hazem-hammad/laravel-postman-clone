@@ -41,7 +41,7 @@ class PostmanV21Parser
     }
 
     /**
-     * @param array<int, array{key:string,value:mixed}> $list
+     * @param array<int, array<string,mixed>> $list
      * @return array<string,string>
      */
     protected function parseVariables(array $list): array

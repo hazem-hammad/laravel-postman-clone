@@ -4,6 +4,26 @@ namespace HazemHammad\PostmanClone\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property ?string $collection_id
+ * @property ?string $request_id
+ * @property ?string $request_name
+ * @property ?string $environment_id
+ * @property string $method
+ * @property string $url_raw
+ * @property string $url_resolved
+ * @property array<int|string, mixed> $request_payload_json
+ * @property ?int $response_status
+ * @property ?array<string, mixed> $response_headers_json
+ * @property ?string $response_body
+ * @property bool $response_body_truncated
+ * @property ?int $response_size_bytes
+ * @property ?int $timing_ms
+ * @property ?string $error_kind
+ * @property ?string $error_message
+ * @property ?\Illuminate\Support\Carbon $created_at
+ */
 class Run extends Model
 {
     protected $connection = 'postman_clone_storage';

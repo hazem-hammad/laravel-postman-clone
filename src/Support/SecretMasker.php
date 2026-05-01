@@ -12,7 +12,7 @@ class SecretMasker
     public static function mask(string $input, array $secrets): string
     {
         foreach ($secrets as $secret) {
-            if ($secret === '' || $secret === null) {
+            if ($secret === '') {
                 continue;
             }
             $input = str_replace($secret, self::MASK, $input);
