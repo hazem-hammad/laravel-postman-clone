@@ -65,4 +65,21 @@ return [
         'enabled' => true,
         'path' => null, // null → base_path()
     ],
+
+    'github' => [
+        'enabled' => env('POSTMAN_CLONE_GITHUB_CLIENT_ID') !== null,
+        'client_id' => env('POSTMAN_CLONE_GITHUB_CLIENT_ID'),
+        'client_secret' => env('POSTMAN_CLONE_GITHUB_CLIENT_SECRET'),
+        'repo' => env('POSTMAN_CLONE_GITHUB_REPO'),
+        'default_assignee' => env('POSTMAN_CLONE_GITHUB_DEFAULT_ASSIGNEE'),
+        'allow_public_repo_scope' => env('POSTMAN_CLONE_GITHUB_ALLOW_PUBLIC_REPO_SCOPE', false),
+        'oauth_state_ttl' => 600,
+        'thread_cache_ttl' => 60,
+        'collaborators_cache_ttl' => 86400,
+        'repo_access_recheck_interval' => 86400,
+        'thread_html_cap_bytes' => 1048576, // 1 MB
+        'api_base' => 'https://api.github.com',
+        'oauth_authorize_url' => 'https://github.com/login/oauth/authorize',
+        'oauth_token_url' => 'https://github.com/login/oauth/access_token',
+    ],
 ];
