@@ -1,7 +1,8 @@
 import { useTabsStore } from '@/stores/tabs-store';
-import { useUiStore, type ResponseSubTab } from '@/stores/ui-store';
+import { useUiStore, type ResponseSubTab, type WorkspaceLayout } from '@/stores/ui-store';
 import { ResponseStatusBar } from './response-status-bar';
 import { ResponseBodyView } from './response-body-view';
+import { LayoutToggle } from '../workspace/layout-toggle';
 import type { RunResult } from '@/api/types';
 
 const TABS: { id: ResponseSubTab; label: string }[] = [
@@ -9,7 +10,13 @@ const TABS: { id: ResponseSubTab; label: string }[] = [
   { id: 'headers', label: 'Headers' },
 ];
 
-export function ResponseViewer({ tabId }: { tabId: string }) {
+export function ResponseViewer({
+  tabId,
+  layout = 'vertical',
+}: {
+  tabId: string;
+  layout?: WorkspaceLayout;
+}) {
   const tab = useTabsStore((s) => s.tabs.find((t) => t.id === tabId));
   const sub = useUiStore((s) => s.responseSubTab);
   const setSub = useUiStore((s) => s.setResponseSubTab);
@@ -18,10 +25,17 @@ export function ResponseViewer({ tabId }: { tabId: string }) {
 
   const headerCount = result ? Object.keys(result.headers ?? {}).length : 0;
 
+  // In horizontal layout the divider becomes vertical (handled by RequestEditor's
+  // border-r). Drop the border-t we'd use for the stacked layout.
+  const sectionClass =
+    layout === 'horizontal'
+      ? 'flex-1 flex flex-col min-h-0 bg-app'
+      : 'flex-1 flex flex-col min-h-0 border-t border-line-subtle bg-app';
+
   return (
-    <section className="flex-1 flex flex-col min-h-0 border-t border-line-subtle bg-app">
+    <section className={sectionClass}>
       <ResponseStatusBar result={result} />
-      <div className="flex items-stretch border-b border-line-subtle px-3 bg-app">
+      <div className="flex items-stretch border-b border-line-subtle pl-3 pr-2 bg-app">
         {TABS.map((t) => {
           const isActive = sub === t.id;
           return (
@@ -42,6 +56,9 @@ export function ResponseViewer({ tabId }: { tabId: string }) {
             </button>
           );
         })}
+        <div className="ml-auto flex items-center">
+          <LayoutToggle />
+        </div>
       </div>
       <div className="flex-1 overflow-auto flex flex-col min-h-0">
         {sub === 'body' && <ResponseBodyView result={result} />}

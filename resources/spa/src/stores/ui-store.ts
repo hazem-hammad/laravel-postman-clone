@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 export type RequestSubTab = 'params' | 'headers' | 'body' | 'auth';
 export type ResponseSubTab = 'body' | 'headers';
 export type ResponseBodyFormat = 'pretty' | 'raw' | 'preview';
+export type WorkspaceLayout = 'vertical' | 'horizontal';
 
 type State = {
   sidebarCollapsed: boolean;
@@ -12,6 +13,7 @@ type State = {
   responseBodyFormat: ResponseBodyFormat;
   envPanelOpen: boolean;
   expandedTreeNodes: string[]; // collection ids and folder ids that are expanded
+  workspaceLayout: WorkspaceLayout;
 
   toggleSidebar: () => void;
   setRequestSubTab: (t: RequestSubTab) => void;
@@ -20,6 +22,7 @@ type State = {
   toggleEnvPanel: () => void;
   isExpanded: (id: string) => boolean;
   setExpanded: (id: string, expanded: boolean) => void;
+  setWorkspaceLayout: (l: WorkspaceLayout) => void;
 };
 
 export const useUiStore = create<State>()(
@@ -31,12 +34,14 @@ export const useUiStore = create<State>()(
       responseBodyFormat: 'pretty',
       envPanelOpen: false,
       expandedTreeNodes: [],
+      workspaceLayout: 'vertical',
 
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       setRequestSubTab: (t) => set({ requestSubTab: t }),
       setResponseSubTab: (t) => set({ responseSubTab: t }),
       setResponseBodyFormat: (f) => set({ responseBodyFormat: f }),
       toggleEnvPanel: () => set((s) => ({ envPanelOpen: !s.envPanelOpen })),
+      setWorkspaceLayout: (l) => set({ workspaceLayout: l }),
 
       isExpanded: (id) => get().expandedTreeNodes.includes(id),
       setExpanded: (id, expanded) =>

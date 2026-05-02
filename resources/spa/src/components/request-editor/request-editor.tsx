@@ -1,6 +1,7 @@
 import { useTabsStore } from '@/stores/tabs-store';
 import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useHistoryStore } from '@/stores/history-store';
+import type { WorkspaceLayout } from '@/stores/ui-store';
 import { sendRun } from '@/api/runs';
 import { ApiError } from '@/api/client';
 import { rebuildUrlWithParams } from '@/lib/url-params-sync';
@@ -10,7 +11,13 @@ import { KeyValueTable } from './key-value-table';
 import { BodyEditor } from './body-editor';
 import { AuthEditor } from './auth-editor';
 
-export function RequestEditor({ tabId }: { tabId: string }) {
+export function RequestEditor({
+  tabId,
+  layout = 'vertical',
+}: {
+  tabId: string;
+  layout?: WorkspaceLayout;
+}) {
   const tab = useTabsStore((s) => s.tabs.find((t) => t.id === tabId));
   const update = useTabsStore((s) => s.updateTab);
   const setSending = useTabsStore((s) => s.setSending);
@@ -69,8 +76,15 @@ export function RequestEditor({ tabId }: { tabId: string }) {
     }
   };
 
+  const sectionClass =
+    layout === 'horizontal'
+      ? 'border-r border-line-subtle flex flex-col bg-app w-1/2 min-w-[320px]'
+      : 'border-b border-line-subtle flex flex-col bg-app';
+  const sectionStyle: React.CSSProperties =
+    layout === 'horizontal' ? {} : { minHeight: '40%' };
+
   return (
-    <section className="border-b border-line-subtle flex flex-col bg-app" style={{ minHeight: '40%' }}>
+    <section className={sectionClass} style={sectionStyle}>
       <MethodUrlBar tabId={tabId} onSend={send} />
       <RequestSubTabs tabId={tabId} />
       <div className="flex-1 overflow-auto">
