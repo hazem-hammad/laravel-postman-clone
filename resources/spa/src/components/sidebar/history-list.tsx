@@ -1,7 +1,22 @@
+import { useEffect, useState } from 'react';
 import { useHistoryStore } from '@/stores/history-store';
 import { useTabsStore } from '@/stores/tabs-store';
 import { showRun } from '@/api/history';
 import type { RunRecordSummary } from '@/api/types';
+import { formatAbsoluteTime, formatRelativeTime } from '@/lib/format-time';
+
+/**
+ * Force a re-render every interval so relative timestamps tick forward
+ * without the user having to interact. 30s is granular enough for
+ * minute-rollover updates without thrashing React.
+ */
+function useTick(intervalMs: number) {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+}
 
 const METHOD_COLOR: Record<string, string> = {
   GET: 'text-emerald-600',
@@ -22,6 +37,7 @@ function statusColor(status: number | null) {
 export function HistoryList() {
   const recent = useHistoryStore((s) => s.recent);
   const open = useTabsStore((s) => s.openRequestTab);
+  useTick(30_000);
 
   if (recent.length === 0) {
     return <div className="text-xs text-zinc-400 px-3 py-1">No history yet.</div>;
@@ -54,15 +70,21 @@ export function HistoryList() {
         <li key={r.id}>
           <button
             onClick={() => onClick(r)}
-            className="w-full text-left px-3 py-1.5 text-sm hover:bg-zinc-200 flex items-center gap-2"
+            title={formatAbsoluteTime(r.created_at)}
+            className="w-full text-left px-3 py-1.5 text-sm hover:bg-zinc-200 flex flex-col gap-0.5"
           >
-            <span className={`text-[10px] font-bold ${METHOD_COLOR[r.method] ?? 'text-zinc-500'}`}>
-              {r.method}
+            <div className="flex items-center gap-2 min-w-0 w-full">
+              <span className={`text-[10px] font-bold ${METHOD_COLOR[r.method] ?? 'text-zinc-500'}`}>
+                {r.method}
+              </span>
+              <span className={`text-xs ${statusColor(r.response_status)}`}>
+                {r.response_status ?? r.error_kind ?? '—'}
+              </span>
+              <span className="text-zinc-700 truncate flex-1">{r.request_name ?? r.url_raw}</span>
+            </div>
+            <span className="text-[10px] text-zinc-400 pl-[2.75rem]">
+              {formatRelativeTime(r.created_at)}
             </span>
-            <span className={`text-xs ${statusColor(r.response_status)}`}>
-              {r.response_status ?? r.error_kind ?? '—'}
-            </span>
-            <span className="text-zinc-700 truncate">{r.request_name ?? r.url_raw}</span>
           </button>
         </li>
       ))}
