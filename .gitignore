@@ -8,7 +8,6 @@
 /resources/spa/vitest.config.d.ts
 /resources/spa/tailwind.config.js
 /resources/spa/tailwind.config.d.ts
-/resources/dist/
 /.phpunit.cache/
 /.phpunit.result.cache
 /coverage/

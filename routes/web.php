@@ -15,6 +15,19 @@ Route::group([
     'prefix' => $prefix,
     'middleware' => $middleware,
 ], function (): void {
+    Route::get('/dist/{path}', function (string $path) {
+        $file = __DIR__ . '/../resources/dist/' . $path;
+        if (! is_file($file)) abort(404);
+        $mime = match (pathinfo($file, PATHINFO_EXTENSION)) {
+            'js' => 'application/javascript',
+            'css' => 'text/css',
+            'json' => 'application/json',
+            'svg' => 'image/svg+xml',
+            default => mime_content_type($file) ?: 'application/octet-stream',
+        };
+        return response()->file($file, ['Content-Type' => $mime, 'Cache-Control' => 'public, max-age=31536000, immutable']);
+    })->where('path', '.*');
+
     Route::get('/', [AppController::class, 'show'])->name('postman-clone.app');
     Route::get('/history', [AppController::class, 'show'])->name('postman-clone.history');
 
