@@ -7,8 +7,11 @@ import { useCollectionsStore } from '@/stores/collections-store';
 import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useHistoryStore } from '@/stores/history-store';
 import { fetchBootstrap } from '@/api/bootstrap';
+import { useUrlSync } from '@/lib/use-url-sync';
 
 export function App() {
+  useUrlSync();
+
   useEffect(() => {
     let cancelled = false;
     (async () => {

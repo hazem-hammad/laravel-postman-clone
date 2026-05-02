@@ -29,7 +29,6 @@ Route::group([
     })->where('path', '.*');
 
     Route::get('/', [AppController::class, 'show'])->name('postman-clone.app');
-    Route::get('/history', [AppController::class, 'show'])->name('postman-clone.history');
 
     Route::prefix('api')->group(function (): void {
         Route::get('/bootstrap', [BootstrapController::class, 'show']);
@@ -48,4 +47,11 @@ Route::group([
         Route::get('/runs/{id}', [HistoryController::class, 'show']);
         Route::delete('/runs/{id}', [HistoryController::class, 'destroy']);
     });
+
+    // SPA catch-all — any deep link under /postman/ that isn't /api/* or
+    // /dist/* falls through to the Blade shell so React Router can pick
+    // it up client-side. Must be the last route in the group.
+    Route::get('/{any}', [AppController::class, 'show'])
+        ->where('any', '^(?!api|dist).*$')
+        ->name('postman-clone.spa');
 });
