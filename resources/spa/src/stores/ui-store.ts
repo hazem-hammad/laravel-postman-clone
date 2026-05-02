@@ -26,7 +26,7 @@ export const useUiStore = create<State>()(
   persist(
     (set, get) => ({
       sidebarCollapsed: false,
-      requestSubTab: 'params',
+      requestSubTab: 'body',
       responseSubTab: 'body',
       responseBodyFormat: 'pretty',
       envPanelOpen: false,
@@ -47,6 +47,25 @@ export const useUiStore = create<State>()(
           return { expandedTreeNodes: Array.from(set) };
         }),
     }),
-    { name: 'postman-clone-ui' }
+    {
+      name: 'postman-clone-ui',
+      version: 1,
+      // v0 (the original release) defaulted requestSubTab to 'params'.
+      // The intended default is 'body' since that's what most users open
+      // a request to look at first. One-time migration flips persisted
+      // 'params' to 'body'; explicit user picks of 'headers'/'auth' are
+      // preserved.
+      migrate: (persisted: unknown, version: number) => {
+        if (
+          version < 1 &&
+          persisted &&
+          typeof persisted === 'object' &&
+          (persisted as { requestSubTab?: string }).requestSubTab === 'params'
+        ) {
+          return { ...(persisted as Record<string, unknown>), requestSubTab: 'body' };
+        }
+        return persisted as State;
+      },
+    }
   )
 );
