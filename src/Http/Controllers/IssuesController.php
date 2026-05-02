@@ -229,7 +229,7 @@ class IssuesController extends Controller
             'issue_html_url' => $li->issue_html_url,
             'assignee_login' => $li->assignee_login,
             'comment_count' => $li->comment_count,
-            'created_at' => $li->created_at?->toIso8601String(),
+            'created_at' => $li->created_at->toIso8601String(),
         ];
     }
 
