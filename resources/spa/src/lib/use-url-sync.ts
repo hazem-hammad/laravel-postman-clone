@@ -30,6 +30,9 @@ export function useUrlSync() {
     collectionId: null,
     requestId: null,
   });
+  // On first render, the URL is authoritative — skip store→URL sync so the
+  // persisted active tab doesn't fight a freshly-pasted deep link.
+  const hasInitializedRef = useRef(false);
 
   // URL → store
   useEffect(() => {
@@ -72,20 +75,27 @@ export function useUrlSync() {
     };
   }, [params.collectionId, params.requestId, ensureLoaded, openRequestTab, setExpanded]);
 
-  // Store → URL
+  // Store → URL. Skipped on first render so a deep-link URL wins over any
+  // persisted active tab from a previous session. After the first render,
+  // URL changes follow active tab changes (replace history so the back
+  // button doesn't accumulate one entry per tab switch).
   useEffect(() => {
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      return;
+    }
     const active = tabs.find((t) => t.id === activeId);
-    const target =
-      active && active.collectionId && active.requestId
-        ? `/collections/${encodeURIComponent(active.collectionId)}/requests/${encodeURIComponent(active.requestId)}`
-        : '/';
-
+    if (!active || !active.collectionId || !active.requestId) {
+      return;
+    }
+    const target = `/collections/${encodeURIComponent(active.collectionId)}/requests/${encodeURIComponent(active.requestId)}`;
     const current = window.location.pathname.replace(/^\/[^/]+/, '') || '/';
     if (current !== target) {
       navigate(target, { replace: true });
-      lastSyncedRef.current = active && active.collectionId && active.requestId
-        ? { collectionId: active.collectionId, requestId: active.requestId }
-        : { collectionId: null, requestId: null };
+      lastSyncedRef.current = {
+        collectionId: active.collectionId,
+        requestId: active.requestId,
+      };
     }
   }, [activeId, tabs, navigate]);
 }
