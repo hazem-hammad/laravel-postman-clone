@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { RunResult } from '@/api/types';
 import { useUiStore, type ResponseBodyFormat } from '@/stores/ui-store';
+import { highlightJson } from '@/lib/highlight-json';
 
 const FORMATS: { id: ResponseBodyFormat; label: string }[] = [
   { id: 'pretty', label: 'Pretty' },
@@ -54,7 +55,7 @@ export function ResponseBodyView({ result }: { result: RunResult | null }) {
       <FormatToolbar value={fmt} onChange={setFmt} contentType={contentType} />
       {fmt === 'pretty' && (
         <pre className="flex-1 overflow-auto p-3 text-xs font-mono bg-zinc-50 whitespace-pre">
-          {pretty}
+          {highlightJson(pretty)}
         </pre>
       )}
       {fmt === 'raw' && (
@@ -141,7 +142,7 @@ function PreviewBody({
         No HTML preview for <span className="font-mono">{contentType || 'unknown'}</span> — showing pretty JSON.
       </div>
       <pre className="flex-1 overflow-auto p-3 text-xs font-mono bg-zinc-50 whitespace-pre">
-        {pretty}
+        {highlightJson(pretty)}
       </pre>
     </div>
   );
