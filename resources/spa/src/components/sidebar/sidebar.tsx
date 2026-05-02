@@ -1,18 +1,27 @@
 import { useState } from 'react';
 import { CollectionTree } from './collection-tree';
 import { HistoryList } from './history-list';
+import { CollectionIssuesDialog } from '../comments/collection-issues-dialog';
 
 export function Sidebar() {
+  const [issuesFor, setIssuesFor] = useState<string | null>(null);
+
   return (
     <aside className="w-72 border-r border-line-subtle bg-surface flex flex-col h-full overflow-hidden text-fg">
       <div className="flex-1 overflow-y-auto py-1">
         <Section title="Collections" defaultOpen>
-          <CollectionTree />
+          <CollectionTree onShowIssues={setIssuesFor} />
         </Section>
         <Section title="History" defaultOpen>
           <HistoryList />
         </Section>
       </div>
+      {issuesFor ? (
+        <CollectionIssuesDialog
+          collectionId={issuesFor}
+          onClose={() => setIssuesFor(null)}
+        />
+      ) : null}
     </aside>
   );
 }

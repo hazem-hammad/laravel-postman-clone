@@ -21,19 +21,21 @@ class IssuesController extends Controller
     {
         $collectionId = (string) $request->query('collection_id', '');
         $requestId = (string) $request->query('request_id', '');
-        if ($collectionId === '' || $requestId === '') {
+        if ($collectionId === '') {
             return response()->json(['data' => []]);
         }
 
-        $rows = LinkedIssue::query()
+        $query = LinkedIssue::query()
             ->where('collection_id', $collectionId)
-            ->where('request_id', $requestId)
             ->whereNull('deleted_at')
-            ->orderByDesc('id')
-            ->get();
+            ->orderByDesc('id');
+
+        if ($requestId !== '') {
+            $query->where('request_id', $requestId);
+        }
 
         return response()->json([
-            'data' => $rows->map(fn (LinkedIssue $li) => $this->serializeLinkedIssue($li))->all(),
+            'data' => $query->get()->map(fn (LinkedIssue $li) => $this->serializeLinkedIssue($li))->all(),
         ]);
     }
 

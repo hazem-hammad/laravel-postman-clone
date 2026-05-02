@@ -1,12 +1,17 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCollectionsStore } from '@/stores/collections-store';
+import { useLinkedIssuesStore } from '@/stores/linked-issues-store';
 import { useTabsStore } from '@/stores/tabs-store';
 import { useUiStore } from '@/stores/ui-store';
 import { applyOverride } from '@/stores/overrides-store';
 import { methodTextClass } from '@/lib/method-style';
 import type { CollectionEntry, FolderNode, RequestNode, TreeNode } from '@/api/types';
 
-export function CollectionTree() {
+export function CollectionTree({
+  onShowIssues,
+}: {
+  onShowIssues?: (collectionId: string) => void;
+}) {
   const entries = useCollectionsStore((s) => s.entries);
 
   if (entries.length === 0) {
@@ -16,7 +21,7 @@ export function CollectionTree() {
   return (
     <ul>
       {entries.map((e) => (
-        <CollectionNode key={e.id} entry={e} />
+        <CollectionNode key={e.id} entry={e} onShowIssues={onShowIssues} />
       ))}
     </ul>
   );
@@ -36,11 +41,19 @@ function Caret({ open }: { open: boolean }) {
   );
 }
 
-function CollectionNode({ entry }: { entry: CollectionEntry }) {
+function CollectionNode({
+  entry,
+  onShowIssues,
+}: {
+  entry: CollectionEntry;
+  onShowIssues?: (collectionId: string) => void;
+}) {
   const isExpanded = useUiStore((s) => s.isExpanded(entry.id));
   const setExpanded = useUiStore((s) => s.setExpanded);
   const ensureLoaded = useCollectionsStore((s) => s.ensureLoaded);
   const detail = useCollectionsStore((s) => s.loaded[entry.id]);
+  const counts = useLinkedIssuesStore((s) => s.countsByCollection[entry.id]);
+  const issueTotals = countTotals(counts);
 
   const onToggle = async () => {
     if (!isExpanded && !detail && !entry.missing) {
@@ -51,29 +64,71 @@ function CollectionNode({ entry }: { entry: CollectionEntry }) {
 
   return (
     <li>
-      <button
-        onClick={onToggle}
-        className="w-full text-left px-3 py-1.5 text-sm hover:bg-surface-hover flex items-center gap-1.5 group"
-      >
-        <Caret open={isExpanded} />
-        <CollectionGlyph />
-        <span
-          className={
-            entry.missing
-              ? 'text-status-error'
-              : 'text-fg font-medium truncate'
-          }
+      <div className="group flex items-center hover:bg-surface-hover">
+        <button
+          onClick={onToggle}
+          className="flex-1 text-left px-3 py-1.5 text-sm flex items-center gap-1.5 min-w-0"
         >
-          {entry.name}
-        </span>
-        {entry.missing ? <span className="text-[10px] text-status-error">(missing)</span> : null}
-      </button>
+          <Caret open={isExpanded} />
+          <CollectionGlyph />
+          <span
+            className={
+              entry.missing ? 'text-status-error' : 'text-fg font-medium truncate'
+            }
+          >
+            {entry.name}
+          </span>
+          {entry.missing ? (
+            <span className="text-[10px] text-status-error">(missing)</span>
+          ) : null}
+        </button>
+        {!entry.missing && issueTotals.total > 0 && onShowIssues ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onShowIssues(entry.id);
+            }}
+            title={`${issueTotals.total} issue(s) — ${issueTotals.open} open, ${issueTotals.closed} closed`}
+            className="mr-2 flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border border-line-subtle bg-surface text-fg-muted hover:text-fg hover:border-line"
+          >
+            <CommentIcon />
+            {issueTotals.total}
+            {issueTotals.open > 0 ? (
+              <span className="text-status-success">·{issueTotals.open}</span>
+            ) : null}
+          </button>
+        ) : null}
+      </div>
       {isExpanded && detail ? (
         <ul className="ml-3 border-l border-line-subtle">
           {detail.items.map((item) => <TreeItem key={item.id} item={item} collectionId={entry.id} />)}
         </ul>
       ) : null}
     </li>
+  );
+}
+
+function countTotals(
+  counts: Record<string, { open: number; closed: number }> | undefined,
+): { total: number; open: number; closed: number } {
+  if (!counts) return { total: 0, open: 0, closed: 0 };
+  let open = 0;
+  let closed = 0;
+  for (const c of Object.values(counts)) {
+    open += c.open;
+    closed += c.closed;
+  }
+  return { total: open + closed, open, closed };
+}
+
+function CommentIcon() {
+  return (
+    <svg viewBox="0 0 16 16" width="10" height="10" aria-hidden>
+      <path
+        fill="currentColor"
+        d="M1 2.75A2.75 2.75 0 0 1 3.75 0h8.5A2.75 2.75 0 0 1 15 2.75v6.5A2.75 2.75 0 0 1 12.25 12H7.81l-3.13 3.13a.75.75 0 0 1-1.28-.53V12h-.65A2.75 2.75 0 0 1 1 9.25v-6.5z"
+      />
+    </svg>
   );
 }
 

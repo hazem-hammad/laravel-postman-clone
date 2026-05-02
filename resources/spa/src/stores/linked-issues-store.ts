@@ -7,10 +7,12 @@ const keyOf = (collectionId: string, requestId: string) =>
 
 type State = {
   issuesByKey: Record<string, LinkedIssue[]>;
+  issuesByCollection: Record<string, LinkedIssue[]>;
   countsByCollection: Record<string, api.Counts>;
 
   loadCounts: (collectionId: string) => Promise<void>;
   loadIssuesForRequest: (collectionId: string, requestId: string) => Promise<LinkedIssue[]>;
+  loadIssuesForCollection: (collectionId: string) => Promise<LinkedIssue[]>;
   createIssue: (input: Parameters<typeof api.createIssue>[0]) => Promise<LinkedIssue>;
   ensureThread: (id: number) => Promise<LinkedIssue>;
   refreshThread: (id: number) => Promise<LinkedIssue>;
@@ -19,6 +21,7 @@ type State = {
 
 export const useLinkedIssuesStore = create<State>((set, get) => ({
   issuesByKey: {},
+  issuesByCollection: {},
   countsByCollection: {},
 
   async loadCounts(collectionId) {
@@ -33,6 +36,21 @@ export const useLinkedIssuesStore = create<State>((set, get) => ({
     const list = await api.listIssues(collectionId, requestId);
     set({
       issuesByKey: { ...get().issuesByKey, [keyOf(collectionId, requestId)]: list },
+    });
+    return list;
+  },
+
+  async loadIssuesForCollection(collectionId) {
+    if (!collectionId) return [];
+    const list = await api.listIssues(collectionId);
+    const grouped: Record<string, LinkedIssue[]> = {};
+    for (const i of list) {
+      const k = keyOf(i.collection_id, i.request_id);
+      (grouped[k] ??= []).push(i);
+    }
+    set({
+      issuesByCollection: { ...get().issuesByCollection, [collectionId]: list },
+      issuesByKey: { ...get().issuesByKey, ...grouped },
     });
     return list;
   },

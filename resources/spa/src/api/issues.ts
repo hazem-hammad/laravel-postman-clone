@@ -17,10 +17,11 @@ export type LinkedIssue = {
 
 export type Counts = Record<string, { open: number; closed: number }>;
 
-export const listIssues = (collectionId: string, requestId: string) =>
-  request<{ data: LinkedIssue[] }>(
-    `/issues?collection_id=${encodeURIComponent(collectionId)}&request_id=${encodeURIComponent(requestId)}`,
-  ).then((r) => r.data);
+export const listIssues = (collectionId: string, requestId?: string) => {
+  const qs = new URLSearchParams({ collection_id: collectionId });
+  if (requestId) qs.set('request_id', requestId);
+  return request<{ data: LinkedIssue[] }>(`/issues?${qs.toString()}`).then((r) => r.data);
+};
 
 export const getCounts = (collectionId: string) =>
   request<{ data: Counts }>(
