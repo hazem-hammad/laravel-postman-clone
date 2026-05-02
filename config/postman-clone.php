@@ -54,4 +54,15 @@ return [
         'retain_days' => 14,
         'retain_max_rows' => 5000,
     ],
+
+    // Show the current git branch in the SPA's top bar so it's obvious
+    // which checkout the displayed Postman collection corresponds to.
+    // Defaults to base_path() — the host Laravel app's repo. Point it
+    // elsewhere when the collection lives in a parent monorepo, e.g.
+    // base_path('..') for a backend submodule whose collection is in
+    // ../docs/postman/.
+    'git_branch' => [
+        'enabled' => true,
+        'path' => null, // null → base_path()
+    ],
 ];

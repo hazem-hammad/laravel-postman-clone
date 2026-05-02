@@ -12,6 +12,7 @@ export type Bootstrap = {
   environments: EnvironmentSummary[];
   active_environment: string | null;
   history_count: number;
+  git_branch: string | null;
 };
 
 export type KeyValue = { key: string; value: string; disabled?: boolean };

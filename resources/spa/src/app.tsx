@@ -6,6 +6,7 @@ import { EnvPanel } from '@/components/env-panel/env-panel';
 import { useCollectionsStore } from '@/stores/collections-store';
 import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useHistoryStore } from '@/stores/history-store';
+import { useMetaStore } from '@/stores/meta-store';
 import { fetchBootstrap } from '@/api/bootstrap';
 import { useUrlSync } from '@/lib/use-url-sync';
 
@@ -25,6 +26,7 @@ export function App() {
         useCollectionsStore.setState({
           entries: boot.collections.map((c) => ({ ...c })),
         });
+        useMetaStore.getState().setGitBranch(boot.git_branch);
       } catch (e) {
         console.error('bootstrap failed', e);
       }
