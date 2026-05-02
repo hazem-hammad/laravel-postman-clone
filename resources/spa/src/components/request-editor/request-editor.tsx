@@ -4,6 +4,7 @@ import { useHistoryStore } from '@/stores/history-store';
 import { useUiStore } from '@/stores/ui-store';
 import { sendRun } from '@/api/runs';
 import { ApiError } from '@/api/client';
+import { rebuildUrlWithParams } from '@/lib/url-params-sync';
 import { MethodUrlBar } from './method-url-bar';
 import { RequestSubTabs } from './request-sub-tabs';
 import { KeyValueTable } from './key-value-table';
@@ -26,7 +27,11 @@ export function RequestEditor({ tabId }: { tabId: string }) {
         method: tab.method,
         url: tab.url,
         headers: tab.headers,
-        params: tab.params,
+        // Active params are already encoded into the URL via the URL ↔ Params
+        // bidirectional sync, so sending them again would double them up
+        // (e.g. ?search=music&search=music). Disabled rows stay only in
+        // tab.params for the table UI; they're not meant to be sent.
+        params: [],
         body_mode: tab.bodyMode,
         body: tab.body,
         environment_id: envId,
@@ -73,7 +78,9 @@ export function RequestEditor({ tabId }: { tabId: string }) {
         {sub === 'params' && (
           <KeyValueTable
             rows={tab.params}
-            onChange={(params) => update(tab.id, { params })}
+            onChange={(params) =>
+              update(tab.id, { params, url: rebuildUrlWithParams(tab.url, params) })
+            }
             placeholder="Param"
           />
         )}

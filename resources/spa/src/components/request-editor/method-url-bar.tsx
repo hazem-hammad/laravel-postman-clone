@@ -2,6 +2,7 @@ import { useTabsStore } from '@/stores/tabs-store';
 import { useOverridesStore } from '@/stores/overrides-store';
 import { useCollectionsStore } from '@/stores/collections-store';
 import { findRequestPath } from '@/lib/find-request';
+import { syncParamsFromUrl } from '@/lib/url-params-sync';
 import { VariableHighlightedInput } from '@/components/variable-highlighted-input';
 
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
@@ -70,7 +71,12 @@ export function MethodUrlBar({ tabId, onSend }: { tabId: string; onSend: () => v
       </select>
       <VariableHighlightedInput
         value={tab.url}
-        onChange={(next) => update(tabId, { url: next })}
+        onChange={(next) =>
+          update(tabId, {
+            url: next,
+            params: syncParamsFromUrl(next, tab.params),
+          })
+        }
         placeholder="https://api.example.com/path or {{base_url}}/path"
         className="flex-1 border border-zinc-300 rounded"
       />
