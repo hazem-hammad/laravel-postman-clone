@@ -19,6 +19,7 @@ abstract class TestCase extends Orchestra
         $app['config']->set('app.env', 'local');
         $app['config']->set('postman-clone.storage.driver', 'sqlite');
         $app['config']->set('postman-clone.storage.sqlite.path', ':memory:');
+        $app['config']->set('session.driver', 'array');
     }
 
     protected function setUp(): void
