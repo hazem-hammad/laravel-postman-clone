@@ -36,9 +36,15 @@ export function UserMenu() {
           </div>
           <button
             onClick={async () => {
-              await signOut();
+              try {
+                await signOut();
+              } catch {
+                // Best-effort — even if the call fails, drop the local user
+                // so the UI doesn't get stuck claiming we're authed.
+              }
               useAuthStore.getState().signOut();
               setOpen(false);
+              window.location.reload();
             }}
             className="w-full text-left px-3 py-2 text-fg-muted hover:bg-surface-hover hover:text-fg"
           >
