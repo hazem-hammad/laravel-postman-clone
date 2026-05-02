@@ -5,6 +5,7 @@ import { Workspace } from '@/components/workspace/workspace';
 import { EnvPanel } from '@/components/env-panel/env-panel';
 import { StatusFooter } from '@/components/status-footer';
 import { useAuthStore } from '@/stores/auth-store';
+import { useLinkedIssuesStore } from '@/stores/linked-issues-store';
 import { useCollectionsStore } from '@/stores/collections-store';
 import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useHistoryStore } from '@/stores/history-store';
@@ -46,7 +47,14 @@ export function App() {
         console.error('bootstrap failed', e);
       }
     })();
-    void useCollectionsStore.getState().refresh();
+    void useCollectionsStore.getState().refresh().then(() => {
+      const entries = useCollectionsStore.getState().entries;
+      for (const e of entries) {
+        if (!e.missing) {
+          void useLinkedIssuesStore.getState().loadCounts(e.id).catch(() => undefined);
+        }
+      }
+    });
     void useEnvironmentsStore.getState().refresh();
     void useHistoryStore.getState().refresh();
     return () => {

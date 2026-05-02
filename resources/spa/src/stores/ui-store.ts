@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type RequestSubTab = 'params' | 'headers' | 'body' | 'auth';
+export type RequestSubTab = 'params' | 'headers' | 'body' | 'auth' | 'comments';
 export type ResponseSubTab = 'body' | 'headers';
 export type ResponseBodyFormat = 'pretty' | 'raw' | 'preview';
 export type WorkspaceLayout = 'vertical' | 'horizontal';

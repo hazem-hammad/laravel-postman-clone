@@ -5,6 +5,7 @@ import { RequestSubTabs } from './request-sub-tabs';
 import { KeyValueTable } from './key-value-table';
 import { BodyEditor } from './body-editor';
 import { AuthEditor } from './auth-editor';
+import { CommentsPane } from '../comments/comments-pane';
 
 /**
  * The request DETAILS area: sub-tabs + currently-active sub-tab content
@@ -53,6 +54,7 @@ export function RequestEditor({
         )}
         {sub === 'body' && <BodyEditor tabId={tab.id} />}
         {sub === 'auth' && <AuthEditor />}
+        {sub === 'comments' && <CommentsPane tabId={tab.id} />}
       </div>
     </section>
   );
