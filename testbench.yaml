@@ -1,0 +1,12 @@
+providers:
+  - HazemHammad\PostmanClone\PostmanCloneServiceProvider
+
+env:
+  APP_ENV: local
+  APP_KEY: base64:iVZUL/PXZ7t0LNL7t4N44yqyEVglOQ5vXtFqV5x0gQ4=
+  POSTMAN_CLONE_STORAGE: sqlite
+
+workbench:
+  install: false
+  welcome: false
+  build: []

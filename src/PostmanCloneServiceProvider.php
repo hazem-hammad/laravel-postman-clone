@@ -6,6 +6,8 @@ use GuzzleHttp\Client;
 use HazemHammad\PostmanClone\Console\InstallCommand;
 use HazemHammad\PostmanClone\Http\Middleware\EnsurePackageEnabled;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class PostmanCloneServiceProvider extends ServiceProvider
@@ -26,6 +28,7 @@ class PostmanCloneServiceProvider extends ServiceProvider
 
         $this->registerStorageConnection();
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->ensureMigrated();
 
         $router->aliasMiddleware('postman-clone.gate', EnsurePackageEnabled::class);
 
@@ -69,5 +72,40 @@ class PostmanCloneServiceProvider extends ServiceProvider
         $cfg = config('database.connections.' . $target);
         $cfg['prefix'] = config('postman-clone.storage.table_prefix', 'postman_clone_');
         config()->set('database.connections.postman_clone_storage', $cfg);
+    }
+
+    /**
+     * Auto-migrate the package's own connection on first boot. Idempotent —
+     * the migrator skips already-applied migrations. Safe to call on every
+     * request since the schema check is a single SELECT against
+     * sqlite_master / information_schema.
+     *
+     * Skipped during php artisan migrate:* commands so user-driven migrations
+     * stay in control.
+     */
+    protected function ensureMigrated(): void
+    {
+        // Console commands manage migrations themselves (`php artisan migrate`,
+        // `postman-clone:install`, test runs that drive migrate manually).
+        // Auto-migrate runs only on incoming web requests where it's needed.
+        if ($this->app->runningInConsole()) {
+            return;
+        }
+
+        try {
+            if (Schema::connection('postman_clone_storage')->hasTable('runs')) {
+                return;
+            }
+
+            Artisan::call('migrate', [
+                '--database' => 'postman_clone_storage',
+                '--path' => __DIR__ . '/../database/migrations',
+                '--realpath' => true,
+                '--force' => true,
+            ]);
+        } catch (\Throwable) {
+            // First-boot migrate failure shouldn't crash boot. The query
+            // exception that follows will surface a clear error to the user.
+        }
     }
 }
