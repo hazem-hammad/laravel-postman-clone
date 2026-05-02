@@ -4,6 +4,7 @@ namespace HazemHammad\PostmanClone;
 
 use GuzzleHttp\Client;
 use HazemHammad\PostmanClone\Console\InstallCommand;
+use HazemHammad\PostmanClone\Http\Middleware\EnsureGithubAuthenticated;
 use HazemHammad\PostmanClone\Http\Middleware\EnsurePackageEnabled;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Artisan;
@@ -31,6 +32,7 @@ class PostmanCloneServiceProvider extends ServiceProvider
         $this->ensureMigrated();
 
         $router->aliasMiddleware('postman-clone.gate', EnsurePackageEnabled::class);
+        $router->aliasMiddleware('postman-clone.gh-auth', EnsureGithubAuthenticated::class);
 
         $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
 
