@@ -1,7 +1,7 @@
 /vendor/
 /node_modules/
 /resources/spa/node_modules/
-/resources/spa/dist/
+/resources/dist/
 /.phpunit.cache/
 /.phpunit.result.cache
 /coverage/

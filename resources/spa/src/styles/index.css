@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --pc-primary: #0B5FFF;
+  --pc-primary-text: #FFFFFF;
+}
+
+html, body, #app { height: 100%; }
+body { font-family: ui-sans-serif, system-ui, sans-serif; }
