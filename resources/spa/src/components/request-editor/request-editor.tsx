@@ -1,16 +1,17 @@
 import { useTabsStore } from '@/stores/tabs-store';
-import { useEnvironmentsStore } from '@/stores/environments-store';
-import { useHistoryStore } from '@/stores/history-store';
 import type { WorkspaceLayout } from '@/stores/ui-store';
-import { sendRun } from '@/api/runs';
-import { ApiError } from '@/api/client';
 import { rebuildUrlWithParams } from '@/lib/url-params-sync';
-import { MethodUrlBar } from './method-url-bar';
 import { RequestSubTabs } from './request-sub-tabs';
 import { KeyValueTable } from './key-value-table';
 import { BodyEditor } from './body-editor';
 import { AuthEditor } from './auth-editor';
 
+/**
+ * The request DETAILS area: sub-tabs + currently-active sub-tab content
+ * (Params / Headers / Body / Auth). The URL bar lives at the workspace
+ * level above this — that way the URL stays full-width regardless of
+ * whether the workspace is in vertical or horizontal split.
+ */
 export function RequestEditor({
   tabId,
   layout = 'vertical',
@@ -20,61 +21,8 @@ export function RequestEditor({
 }) {
   const tab = useTabsStore((s) => s.tabs.find((t) => t.id === tabId));
   const update = useTabsStore((s) => s.updateTab);
-  const setSending = useTabsStore((s) => s.setSending);
-  const setResult = useTabsStore((s) => s.setResult);
   if (!tab) return null;
   const sub = tab.subTab;
-
-  const send = async () => {
-    setSending(tab.id, true);
-    try {
-      const envId = useEnvironmentsStore.getState().activeId;
-      const res = await sendRun({
-        method: tab.method,
-        url: tab.url,
-        headers: tab.headers,
-        // Active params are already encoded into the URL via the URL ↔ Params
-        // bidirectional sync, so sending them again would double them up
-        // (e.g. ?search=music&search=music). Disabled rows stay only in
-        // tab.params for the table UI; they're not meant to be sent.
-        params: [],
-        body_mode: tab.bodyMode,
-        body: tab.body,
-        environment_id: envId,
-        collection_id: tab.collectionId,
-        request_id: tab.requestId,
-        request_name: tab.name,
-      });
-      setResult(tab.id, res.result);
-      void useHistoryStore.getState().refresh();
-    } catch (e) {
-      if (e instanceof ApiError) {
-        const payload = (e.payload ?? {}) as { message?: string; error?: { kind?: string; message?: string; missing?: string[] } };
-        const apiKind = payload.error?.kind;
-        const apiMessage =
-          payload.error?.message ??
-          (Array.isArray(payload.error?.missing)
-            ? `Unresolved variable(s): ${payload.error!.missing!.join(', ')}`
-            : undefined) ??
-          payload.message ??
-          `HTTP ${e.status}`;
-        setResult(tab.id, {
-          status: null, headers: {}, body: JSON.stringify(e.payload, null, 2),
-          body_truncated: false, size_bytes: null, timing_ms: 0,
-          error_kind: apiKind ?? 'invalid_request',
-          error_message: `${apiMessage} (HTTP ${e.status})`,
-        });
-      } else {
-        setResult(tab.id, {
-          status: null, headers: {}, body: null, body_truncated: false,
-          size_bytes: null, timing_ms: 0,
-          error_kind: 'unknown', error_message: e instanceof Error ? e.message : String(e),
-        });
-      }
-    } finally {
-      setSending(tab.id, false);
-    }
-  };
 
   const sectionClass =
     layout === 'horizontal'
@@ -85,7 +33,6 @@ export function RequestEditor({
 
   return (
     <section className={sectionClass} style={sectionStyle}>
-      <MethodUrlBar tabId={tabId} onSend={send} />
       <RequestSubTabs tabId={tabId} />
       <div className="flex-1 overflow-auto">
         {sub === 'params' && (
