@@ -38,10 +38,20 @@ export function RequestEditor({ tabId }: { tabId: string }) {
       void useHistoryStore.getState().refresh();
     } catch (e) {
       if (e instanceof ApiError) {
+        const payload = (e.payload ?? {}) as { message?: string; error?: { kind?: string; message?: string; missing?: string[] } };
+        const apiKind = payload.error?.kind;
+        const apiMessage =
+          payload.error?.message ??
+          (Array.isArray(payload.error?.missing)
+            ? `Unresolved variable(s): ${payload.error!.missing!.join(', ')}`
+            : undefined) ??
+          payload.message ??
+          `HTTP ${e.status}`;
         setResult(tab.id, {
           status: null, headers: {}, body: JSON.stringify(e.payload, null, 2),
           body_truncated: false, size_bytes: null, timing_ms: 0,
-          error_kind: 'invalid_request', error_message: `HTTP ${e.status}`,
+          error_kind: apiKind ?? 'invalid_request',
+          error_message: `${apiMessage} (HTTP ${e.status})`,
         });
       } else {
         setResult(tab.id, {
