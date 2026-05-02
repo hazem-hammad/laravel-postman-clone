@@ -40,7 +40,7 @@ export function ResponseBodyView({ result }: { result: RunResult | null }) {
 
   if (result.error_kind && !result.body) {
     return (
-      <div className="flex-1 p-3 text-xs text-zinc-400">
+      <div className="flex-1 p-3 text-xs text-fg-subtle">
         No response body. The error is shown in the banner above.
       </div>
     );
@@ -51,20 +51,20 @@ export function ResponseBodyView({ result }: { result: RunResult | null }) {
   const isImage = contentType.startsWith('image/');
 
   return (
-    <div className="flex-1 flex flex-col min-h-0">
+    <div className="flex-1 flex flex-col min-h-0" style={{ background: 'var(--pc-code-bg)' }}>
       <FormatToolbar value={fmt} onChange={setFmt} contentType={contentType} />
       {fmt === 'pretty' && (
-        <pre className="flex-1 overflow-auto p-3 text-xs font-mono bg-zinc-50 whitespace-pre">
+        <pre className="flex-1 overflow-auto p-3 text-xs font-mono whitespace-pre" style={{ color: 'var(--pc-code-text)' }}>
           {highlightJson(pretty)}
         </pre>
       )}
       {fmt === 'raw' && (
-        <pre className="flex-1 overflow-auto p-3 text-xs font-mono bg-zinc-50 whitespace-pre-wrap break-all">
+        <pre className="flex-1 overflow-auto p-3 text-xs font-mono whitespace-pre-wrap break-all" style={{ color: 'var(--pc-code-text)' }}>
           {body}
         </pre>
       )}
       {fmt === 'preview' && (
-        <PreviewBody body={body} contentType={contentType} isHtml={isHtml} isImage={isImage} />
+        <PreviewBody body={body} contentType={contentType} isHtml={isHtml} isImage={isImage} pretty={pretty} />
       )}
     </div>
   );
@@ -78,16 +78,16 @@ function FormatToolbar({
   contentType: string;
 }) {
   return (
-    <div className="px-3 py-1.5 border-b border-zinc-200 flex items-center gap-2 text-xs bg-white">
-      <div className="inline-flex rounded border border-zinc-300 overflow-hidden">
+    <div className="px-3 py-1.5 border-b border-line-subtle flex items-center gap-1 text-xs bg-app">
+      <div className="inline-flex items-center gap-0.5">
         {FORMATS.map((f) => (
           <button
             key={f.id}
             onClick={() => onChange(f.id)}
-            className={`px-3 py-1 ${
+            className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors ${
               value === f.id
-                ? 'bg-primary text-primary-text'
-                : 'bg-white text-zinc-700 hover:bg-zinc-50'
+                ? 'bg-surface-3 text-fg'
+                : 'text-fg-muted hover:bg-surface-hover hover:text-fg'
             }`}
           >
             {f.label}
@@ -95,19 +95,20 @@ function FormatToolbar({
         ))}
       </div>
       {contentType ? (
-        <span className="text-zinc-400 font-mono">{contentType}</span>
+        <span className="ml-2 text-fg-subtle font-mono text-[11px]">{contentType}</span>
       ) : null}
     </div>
   );
 }
 
 function PreviewBody({
-  body, contentType, isHtml, isImage,
+  body, contentType, isHtml, isImage, pretty,
 }: {
   body: string;
   contentType: string;
   isHtml: boolean;
   isImage: boolean;
+  pretty: string;
 }) {
   if (isHtml && body) {
     return (
@@ -124,24 +125,18 @@ function PreviewBody({
       ? body
       : `data:${contentType};base64,${btoa(body)}`;
     return (
-      <div className="flex-1 overflow-auto p-3 bg-zinc-50 flex items-center justify-center">
+      <div className="flex-1 overflow-auto p-3 flex items-center justify-center" style={{ background: 'var(--pc-code-bg)' }}>
         <img src={dataUrl} alt="response" className="max-w-full max-h-full" />
       </div>
     );
   }
-  // Fallback: show pretty-printed JSON
-  let pretty = body;
-  try {
-    pretty = JSON.stringify(JSON.parse(body), null, 2);
-  } catch {
-    // not JSON; show raw
-  }
+  // Fallback: pretty-printed JSON
   return (
     <div className="flex-1 flex flex-col">
-      <div className="px-3 py-1.5 text-[11px] text-zinc-500 bg-zinc-50 border-b border-zinc-200">
+      <div className="px-3 py-1.5 text-[11px] text-fg-subtle border-b border-line-subtle">
         No HTML preview for <span className="font-mono">{contentType || 'unknown'}</span> — showing pretty JSON.
       </div>
-      <pre className="flex-1 overflow-auto p-3 text-xs font-mono bg-zinc-50 whitespace-pre">
+      <pre className="flex-1 overflow-auto p-3 text-xs font-mono whitespace-pre" style={{ color: 'var(--pc-code-text)' }}>
         {highlightJson(pretty)}
       </pre>
     </div>

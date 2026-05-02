@@ -6,6 +6,7 @@ type Props = {
   onChange: (next: string) => void;
   placeholder?: string;
   className?: string;
+  style?: React.CSSProperties;
 };
 
 /**
@@ -17,7 +18,7 @@ type Props = {
  * colors from the pre underneath. Both share the same font, size,
  * line-height, padding, and box so cursor position lines up exactly.
  */
-export function JsonCodeArea({ value, onChange, placeholder, className }: Props) {
+export function JsonCodeArea({ value, onChange, placeholder, className, style }: Props) {
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const preRef = useRef<HTMLPreElement | null>(null);
 
@@ -52,7 +53,7 @@ export function JsonCodeArea({ value, onChange, placeholder, className }: Props)
   };
 
   return (
-    <div className={`relative ${className ?? ''}`}>
+    <div className={`relative ${className ?? ''}`} style={style}>
       <pre
         ref={preRef}
         aria-hidden
@@ -72,11 +73,11 @@ export function JsonCodeArea({ value, onChange, placeholder, className }: Props)
         className="
           relative z-10 w-full h-full m-0 p-2 font-mono text-sm leading-6
           bg-transparent border-0 outline-none resize-none
-          text-transparent caret-zinc-800
-          selection:bg-blue-200 selection:text-zinc-800
-          placeholder:text-zinc-400
+          text-transparent
+          selection:bg-blue-500/40
+          placeholder:text-fg-subtle
         "
-        style={{ caretColor: '#27272a' }}
+        style={{ caretColor: 'var(--pc-fg)' }}
       />
     </div>
   );

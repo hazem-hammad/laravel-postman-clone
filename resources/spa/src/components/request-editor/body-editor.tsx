@@ -21,8 +21,8 @@ export function BodyEditor({ tabId }: { tabId: string }) {
 
   return (
     <div className="p-3 flex flex-col gap-2 h-full min-h-0">
-      <div className="flex items-center gap-2 text-sm">
-        <label className="text-zinc-500">Mode:</label>
+      <div className="flex items-center gap-2 text-xs">
+        <label className="text-fg-muted">Mode:</label>
         <select
           value={tab.bodyMode ?? ''}
           onChange={(e) =>
@@ -31,7 +31,7 @@ export function BodyEditor({ tabId }: { tabId: string }) {
               body: e.target.value === 'raw' ? '' : null,
             })
           }
-          className="border border-zinc-300 rounded px-2 py-1"
+          className="bg-surface-2 border border-line-subtle rounded-md px-2 py-1 text-xs text-fg outline-none focus:border-line"
         >
           <option value="">none</option>
           <option value="raw">raw (JSON / text)</option>
@@ -40,9 +40,11 @@ export function BodyEditor({ tabId }: { tabId: string }) {
         {tab.bodyMode === 'raw' && isJsonish ? (
           <button
             onClick={formatJson}
-            className="ml-auto text-xs px-2 py-1 rounded border border-zinc-300 hover:bg-zinc-50"
+            className="ml-auto text-[11px] px-2 py-1 rounded-md border border-line-subtle bg-surface-2 hover:bg-surface-hover text-fg"
             title="Pretty-print JSON"
-          >Format</button>
+          >
+            Format
+          </button>
         ) : null}
       </div>
       {tab.bodyMode === 'raw' ? (
@@ -50,12 +52,13 @@ export function BodyEditor({ tabId }: { tabId: string }) {
           value={bodyText}
           onChange={(next) => update(tabId, { body: next })}
           placeholder='{"name": "value"}'
-          className="flex-1 min-h-[10rem] border border-zinc-300 rounded bg-white overflow-hidden"
+          className="flex-1 min-h-[10rem] border border-line-subtle rounded-md overflow-hidden"
+          style={{ background: 'var(--pc-code-bg)' }}
         />
       ) : tab.bodyMode === null ? (
-        <p className="text-xs text-zinc-400">No body.</p>
+        <p className="text-xs text-fg-subtle">No body.</p>
       ) : (
-        <p className="text-xs text-zinc-400">{tab.bodyMode} editor not yet implemented.</p>
+        <p className="text-xs text-fg-subtle">{tab.bodyMode} editor not yet implemented.</p>
       )}
     </div>
   );

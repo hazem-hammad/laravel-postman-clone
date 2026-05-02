@@ -63,15 +63,15 @@ export function tokenizeWithVariables(input: string, vars: VarMap): VarToken[] {
 export function renderTokens(tokens: VarToken[]): ReactNode {
   return tokens.map((t, i) => {
     if (t.type === 'text') {
-      return <span key={i}>{t.text}</span>;
+      return <span key={i} className="text-fg">{t.text}</span>;
     }
-    const cls = !t.resolved
-      ? 'text-red-600 bg-red-50 rounded px-0.5'
+    const styleVar = !t.resolved
+      ? { color: 'var(--pc-var-missing-fg)', background: 'var(--pc-var-missing-bg)' }
       : t.isSecret
-        ? 'text-blue-700 bg-blue-50 rounded px-0.5'
-        : 'text-emerald-700 bg-emerald-50 rounded px-0.5';
+        ? { color: 'var(--pc-var-secret-fg)', background: 'var(--pc-var-secret-bg)' }
+        : { color: 'var(--pc-var-resolved-fg)', background: 'var(--pc-var-resolved-bg)' };
     return (
-      <span key={i} className={cls}>
+      <span key={i} className="rounded px-0.5" style={styleVar}>
         {t.text}
       </span>
     );

@@ -10,7 +10,7 @@ export function Workspace() {
   const tab = tabs.find((t) => t.id === activeId) ?? null;
 
   return (
-    <main className="flex-1 flex flex-col h-full overflow-hidden">
+    <main className="flex-1 flex flex-col h-full overflow-hidden bg-app text-fg">
       <TabsBar />
       {tab === null ? <EmptyState /> : (
         <div className="flex-1 flex flex-col overflow-hidden">

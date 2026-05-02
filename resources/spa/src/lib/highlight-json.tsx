@@ -9,14 +9,14 @@ type TokenType =
   | 'whitespace'
   | 'other';
 
-const CLASS: Record<TokenType, string> = {
-  key: 'text-blue-700',
-  string: 'text-emerald-700',
-  number: 'text-purple-700',
-  literal: 'text-amber-600',
-  punct: 'text-zinc-500',
-  whitespace: '',
-  other: 'text-zinc-700',
+const STYLE: Record<TokenType, { color?: string } | undefined> = {
+  key: { color: 'var(--pc-code-key)' },
+  string: { color: 'var(--pc-code-string)' },
+  number: { color: 'var(--pc-code-number)' },
+  literal: { color: 'var(--pc-code-literal)' },
+  punct: { color: 'var(--pc-code-punct)' },
+  whitespace: undefined,
+  other: { color: 'var(--pc-code-text)' },
 };
 
 /**
@@ -49,20 +49,20 @@ export function highlightJson(input: string): ReactNode {
   re.lastIndex = 0;
   while ((match = re.exec(input)) !== null) {
     if (match[1] !== undefined && match[2] !== undefined) {
-      out.push(<span key={i++} className={CLASS.key}>{match[1]}</span>);
-      out.push(<span key={i++} className={CLASS.punct}>{match[2]}</span>);
+      out.push(<span key={i++} style={STYLE.key}>{match[1]}</span>);
+      out.push(<span key={i++} style={STYLE.punct}>{match[2]}</span>);
     } else if (match[3] !== undefined) {
-      out.push(<span key={i++} className={CLASS.string}>{match[3]}</span>);
+      out.push(<span key={i++} style={STYLE.string}>{match[3]}</span>);
     } else if (match[4] !== undefined) {
-      out.push(<span key={i++} className={CLASS.number}>{match[4]}</span>);
+      out.push(<span key={i++} style={STYLE.number}>{match[4]}</span>);
     } else if (match[5] !== undefined) {
-      out.push(<span key={i++} className={CLASS.literal}>{match[5]}</span>);
+      out.push(<span key={i++} style={STYLE.literal}>{match[5]}</span>);
     } else if (match[6] !== undefined) {
-      out.push(<span key={i++} className={CLASS.punct}>{match[6]}</span>);
+      out.push(<span key={i++} style={STYLE.punct}>{match[6]}</span>);
     } else if (match[7] !== undefined) {
       out.push(<span key={i++}>{match[7]}</span>);
     } else if (match[8] !== undefined) {
-      out.push(<span key={i++} className={CLASS.other}>{match[8]}</span>);
+      out.push(<span key={i++} style={STYLE.other}>{match[8]}</span>);
     }
   }
   return out;

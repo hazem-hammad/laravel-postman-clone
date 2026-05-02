@@ -70,7 +70,7 @@ export function RequestEditor({ tabId }: { tabId: string }) {
   };
 
   return (
-    <section className="border-b border-zinc-200 flex flex-col" style={{ minHeight: '40%' }}>
+    <section className="border-b border-line-subtle flex flex-col bg-app" style={{ minHeight: '40%' }}>
       <MethodUrlBar tabId={tabId} onSend={send} />
       <RequestSubTabs tabId={tabId} />
       <div className="flex-1 overflow-auto">

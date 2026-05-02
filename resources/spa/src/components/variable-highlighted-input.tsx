@@ -80,12 +80,12 @@ export function VariableHighlightedInput({
         className={`
           relative z-10 w-full m-0 ${padCls} ${fontCls}
           bg-transparent outline-none
-          text-transparent caret-zinc-800
-          selection:bg-blue-200 selection:text-zinc-800
-          placeholder:text-zinc-400
+          text-transparent
+          selection:bg-blue-500/40
+          placeholder:text-fg-subtle
           ${inputClassName ?? ''}
         `}
-        style={{ lineHeight: '1.5rem' }}
+        style={{ lineHeight: '1.5rem', caretColor: 'var(--pc-fg)' }}
       />
       {hovering && hasVars ? <VarHoverPopover vars={inputVars} compact={compact} /> : null}
     </div>
@@ -101,10 +101,10 @@ function VarHoverPopover({
 }) {
   return (
     <div
-      className={`absolute z-30 ${compact ? 'top-full left-0 mt-1' : 'top-full left-0 mt-1'} bg-white border border-zinc-300 rounded shadow-lg p-2 min-w-[16rem] max-w-md text-xs`}
+      className={`absolute z-30 top-full left-0 mt-1 bg-surface border border-line rounded-md shadow-lg p-2 min-w-[16rem] max-w-md text-xs ${compact ? '' : ''}`}
       role="tooltip"
     >
-      <div className="text-zinc-500 mb-1 text-[10px] uppercase tracking-wide font-semibold">
+      <div className="text-fg-subtle mb-1 text-[10px] uppercase tracking-wide font-semibold">
         Variables in this field
       </div>
       <ul className="flex flex-col gap-1">
@@ -112,14 +112,14 @@ function VarHoverPopover({
           if (v.type !== 'var') return null;
           return (
             <li key={v.name} className="flex items-baseline gap-2">
-              <code className="font-mono text-zinc-800">{`{{${v.name}}}`}</code>
-              <span className="text-zinc-400">→</span>
+              <code className="font-mono text-fg">{`{{${v.name}}}`}</code>
+              <span className="text-fg-subtle">→</span>
               {v.resolved ? (
-                <span className={v.isSecret ? 'text-blue-700' : 'text-emerald-700'}>
-                  {v.isSecret ? '••••••' : v.value || <span className="italic text-zinc-400">(empty)</span>}
+                <span style={{ color: v.isSecret ? 'var(--pc-var-secret-fg)' : 'var(--pc-var-resolved-fg)' }}>
+                  {v.isSecret ? '••••••' : v.value || <span className="italic text-fg-subtle">(empty)</span>}
                 </span>
               ) : (
-                <span className="text-red-600">unresolved</span>
+                <span style={{ color: 'var(--pc-var-missing-fg)' }}>unresolved</span>
               )}
             </li>
           );

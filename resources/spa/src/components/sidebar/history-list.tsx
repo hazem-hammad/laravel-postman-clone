@@ -4,12 +4,8 @@ import { useTabsStore } from '@/stores/tabs-store';
 import { showRun } from '@/api/history';
 import type { RunRecordSummary } from '@/api/types';
 import { formatAbsoluteTime, formatRelativeTime } from '@/lib/format-time';
+import { methodTextClass } from '@/lib/method-style';
 
-/**
- * Force a re-render every interval so relative timestamps tick forward
- * without the user having to interact. 30s is granular enough for
- * minute-rollover updates without thrashing React.
- */
 function useTick(intervalMs: number) {
   const [, setTick] = useState(0);
   useEffect(() => {
@@ -18,20 +14,12 @@ function useTick(intervalMs: number) {
   }, [intervalMs]);
 }
 
-const METHOD_COLOR: Record<string, string> = {
-  GET: 'text-emerald-600',
-  POST: 'text-amber-600',
-  PUT: 'text-blue-600',
-  PATCH: 'text-violet-600',
-  DELETE: 'text-red-600',
-};
-
 function statusColor(status: number | null) {
-  if (status === null) return 'text-red-600';
-  if (status < 300) return 'text-emerald-600';
-  if (status < 400) return 'text-blue-600';
-  if (status < 500) return 'text-amber-600';
-  return 'text-red-600';
+  if (status === null) return 'text-status-error';
+  if (status < 300) return 'text-status-success';
+  if (status < 400) return 'text-status-info';
+  if (status < 500) return 'text-status-warn';
+  return 'text-status-error';
 }
 
 export function HistoryList() {
@@ -40,7 +28,7 @@ export function HistoryList() {
   useTick(30_000);
 
   if (recent.length === 0) {
-    return <div className="text-xs text-zinc-400 px-3 py-1">No history yet.</div>;
+    return <div className="text-xs text-fg-subtle px-3 py-1">No history yet.</div>;
   }
 
   const onClick = async (run: RunRecordSummary) => {
@@ -71,18 +59,18 @@ export function HistoryList() {
           <button
             onClick={() => onClick(r)}
             title={formatAbsoluteTime(r.created_at)}
-            className="w-full text-left px-3 py-1.5 text-sm hover:bg-zinc-200 flex flex-col gap-0.5"
+            className="w-full text-left px-3 py-1.5 text-sm hover:bg-surface-hover flex flex-col gap-0.5"
           >
             <div className="flex items-center gap-2 min-w-0 w-full">
-              <span className={`text-[10px] font-bold ${METHOD_COLOR[r.method] ?? 'text-zinc-500'}`}>
-                {r.method}
+              <span className={`text-[10px] font-bold w-10 shrink-0 ${methodTextClass(r.method)}`}>
+                {short(r.method)}
               </span>
-              <span className={`text-xs ${statusColor(r.response_status)}`}>
+              <span className={`text-[11px] font-mono ${statusColor(r.response_status)}`}>
                 {r.response_status ?? r.error_kind ?? '—'}
               </span>
-              <span className="text-zinc-700 truncate flex-1">{r.request_name ?? r.url_raw}</span>
+              <span className="text-fg truncate flex-1">{r.request_name ?? r.url_raw}</span>
             </div>
-            <span className="text-[10px] text-zinc-400 pl-[2.75rem]">
+            <span className="text-[10px] text-fg-subtle pl-[2.75rem]">
               {formatRelativeTime(r.created_at)}
             </span>
           </button>
@@ -90,4 +78,11 @@ export function HistoryList() {
       ))}
     </ul>
   );
+}
+
+function short(m: string): string {
+  const upper = m.toUpperCase();
+  if (upper === 'DELETE') return 'DEL';
+  if (upper === 'OPTIONS') return 'OPT';
+  return upper;
 }

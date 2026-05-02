@@ -2,10 +2,141 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --pc-primary: #0B5FFF;
+/* =========================================================================
+   Postman-style design tokens.
+   Default theme is dark to match Postman's look. Light theme is supported
+   via [data-theme="light"] on <html>.
+   ========================================================================= */
+
+:root,
+:root[data-theme="dark"] {
+  /* Brand accent (drives bg-primary / text-primary in tailwind) */
+  --pc-primary: #FF6B35;
   --pc-primary-text: #FFFFFF;
+
+  /* Postman-blue Send accent */
+  --pc-accent: #2563eb;
+  --pc-accent-hover: #1d4ed8;
+  --pc-accent-text: #ffffff;
+
+  /* Surfaces */
+  --pc-bg: #1c1c1e;
+  --pc-surface: #232325;
+  --pc-surface-2: #1c1c1e;
+  --pc-surface-3: #2f2f33;
+  --pc-surface-hover: #2c2c30;
+
+  /* Borders */
+  --pc-border: #3f3f46;
+  --pc-border-subtle: #2c2c30;
+
+  /* Foreground */
+  --pc-fg: #e4e4e7;
+  --pc-fg-muted: #a1a1aa;
+  --pc-fg-subtle: #71717a;
+  --pc-fg-inverse: #18181b;
+
+  /* HTTP method palette (matches Postman's chips) */
+  --pc-method-get:    #34d399;
+  --pc-method-post:   #fbbf24;
+  --pc-method-put:    #60a5fa;
+  --pc-method-patch:  #c084fc;
+  --pc-method-delete: #f87171;
+  --pc-method-head:   #94a3b8;
+  --pc-method-options:#94a3b8;
+
+  /* Status palette */
+  --pc-status-success: #16a34a;
+  --pc-status-success-bg: rgba(22, 163, 74, 0.18);
+  --pc-status-warn: #d97706;
+  --pc-status-warn-bg: rgba(217, 119, 6, 0.18);
+  --pc-status-error: #dc2626;
+  --pc-status-error-bg: rgba(220, 38, 38, 0.18);
+  --pc-status-info: #2563eb;
+  --pc-status-info-bg: rgba(37, 99, 235, 0.18);
+
+  /* Var highlight bg */
+  --pc-var-resolved-bg: rgba(34, 197, 94, 0.18);
+  --pc-var-resolved-fg: #4ade80;
+  --pc-var-secret-bg: rgba(59, 130, 246, 0.20);
+  --pc-var-secret-fg: #60a5fa;
+  --pc-var-missing-bg: rgba(220, 38, 38, 0.20);
+  --pc-var-missing-fg: #fca5a5;
+
+  /* Code editor */
+  --pc-code-bg: #18181b;
+  --pc-code-key: #93c5fd;       /* JSON object keys */
+  --pc-code-string: #86efac;    /* string values */
+  --pc-code-number: #c4b5fd;    /* numbers */
+  --pc-code-literal: #fbbf24;   /* true/false/null */
+  --pc-code-punct: #71717a;     /* {} [] , : */
+  --pc-code-text: #d4d4d8;
+}
+
+:root[data-theme="light"] {
+  --pc-bg: #ffffff;
+  --pc-surface: #fafafa;
+  --pc-surface-2: #f4f4f5;
+  --pc-surface-3: #e4e4e7;
+  --pc-surface-hover: #f4f4f5;
+
+  --pc-border: #e4e4e7;
+  --pc-border-subtle: #f4f4f5;
+
+  --pc-fg: #18181b;
+  --pc-fg-muted: #71717a;
+  --pc-fg-subtle: #a1a1aa;
+  --pc-fg-inverse: #ffffff;
+
+  --pc-method-get:    #16a34a;
+  --pc-method-post:   #d97706;
+  --pc-method-put:    #2563eb;
+  --pc-method-patch:  #9333ea;
+  --pc-method-delete: #dc2626;
+  --pc-method-head:   #475569;
+  --pc-method-options:#475569;
+
+  --pc-status-success-bg: rgba(22, 163, 74, 0.10);
+  --pc-status-warn-bg:    rgba(217, 119, 6, 0.10);
+  --pc-status-error-bg:   rgba(220, 38, 38, 0.10);
+  --pc-status-info-bg:    rgba(37, 99, 235, 0.10);
+
+  --pc-var-resolved-bg: rgba(22, 163, 74, 0.10);
+  --pc-var-resolved-fg: #15803d;
+  --pc-var-secret-bg: rgba(37, 99, 235, 0.10);
+  --pc-var-secret-fg: #1d4ed8;
+  --pc-var-missing-bg: rgba(220, 38, 38, 0.10);
+  --pc-var-missing-fg: #b91c1c;
+
+  --pc-code-bg: #fafafa;
+  --pc-code-key: #1d4ed8;
+  --pc-code-string: #15803d;
+  --pc-code-number: #7c3aed;
+  --pc-code-literal: #b45309;
+  --pc-code-punct: #a1a1aa;
+  --pc-code-text: #18181b;
 }
 
 html, body, #app { height: 100%; }
-body { font-family: ui-sans-serif, system-ui, sans-serif; }
+
+body {
+  background: var(--pc-bg);
+  color: var(--pc-fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.35);
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--pc-surface-3);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--pc-fg-subtle); background-clip: padding-box; }

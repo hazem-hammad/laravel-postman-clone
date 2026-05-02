@@ -3,6 +3,7 @@ import { TopBar } from '@/components/top-bar';
 import { Sidebar } from '@/components/sidebar/sidebar';
 import { Workspace } from '@/components/workspace/workspace';
 import { EnvPanel } from '@/components/env-panel/env-panel';
+import { StatusFooter } from '@/components/status-footer';
 import { useCollectionsStore } from '@/stores/collections-store';
 import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useHistoryStore } from '@/stores/history-store';
@@ -40,12 +41,13 @@ export function App() {
   }, []);
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-app text-fg">
       <TopBar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
         <Workspace />
       </div>
+      <StatusFooter />
       <EnvPanel />
     </div>
   );
