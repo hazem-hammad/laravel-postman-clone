@@ -123,3 +123,69 @@ it('sends a raw JSON body when body_mode = raw', function () {
 
     expect($captured)->toBe('{"name":"hi"}');
 });
+
+it('auto-injects Content-Type: application/json for raw JSON bodies', function () {
+    $captured = null;
+    $mock = new MockHandler([
+        function (Psr7Request $req) use (&$captured) {
+            $captured = $req->getHeaderLine('Content-Type');
+            return new Response(200, [], '');
+        },
+    ]);
+    $exec = makeExecutor($mock);
+
+    $exec->execute([
+        'method' => 'POST',
+        'url' => 'https://x.test/items',
+        'headers' => [],
+        'params' => [],
+        'body_mode' => 'raw',
+        'body' => '{"signup_token":"abc","name":"Test"}',
+    ]);
+
+    expect($captured)->toBe('application/json');
+});
+
+it('does not override an explicit Content-Type when body is raw JSON', function () {
+    $captured = null;
+    $mock = new MockHandler([
+        function (Psr7Request $req) use (&$captured) {
+            $captured = $req->getHeaderLine('Content-Type');
+            return new Response(200, [], '');
+        },
+    ]);
+    $exec = makeExecutor($mock);
+
+    $exec->execute([
+        'method' => 'POST',
+        'url' => 'https://x.test/items',
+        'headers' => [['key' => 'content-type', 'value' => 'application/vnd.custom+json', 'disabled' => false]],
+        'params' => [],
+        'body_mode' => 'raw',
+        'body' => '{"name":"hi"}',
+    ]);
+
+    expect($captured)->toBe('application/vnd.custom+json');
+});
+
+it('does not auto-inject Content-Type for non-JSON raw bodies', function () {
+    $captured = null;
+    $mock = new MockHandler([
+        function (Psr7Request $req) use (&$captured) {
+            $captured = $req->getHeaderLine('Content-Type');
+            return new Response(200, [], '');
+        },
+    ]);
+    $exec = makeExecutor($mock);
+
+    $exec->execute([
+        'method' => 'POST',
+        'url' => 'https://x.test/items',
+        'headers' => [],
+        'params' => [],
+        'body_mode' => 'raw',
+        'body' => 'hello plain text',
+    ]);
+
+    expect($captured)->toBe('');
+});

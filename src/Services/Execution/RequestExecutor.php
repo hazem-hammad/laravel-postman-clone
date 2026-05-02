@@ -40,7 +40,14 @@ class RequestExecutor
         $url = $this->buildUrl($req['url'], $req['params']);
         $headers = $this->buildHeaders($req['headers']);
         [$body, $bodyHeaders] = $this->buildBody($req['body_mode'], $req['body']);
-        $headers = array_merge($headers, $bodyHeaders);
+        // Body-derived headers (e.g. auto Content-Type for JSON) only apply
+        // when the caller hasn't already declared the same header — case
+        // insensitive. User-set headers always win.
+        foreach ($bodyHeaders as $name => $value) {
+            if (! $this->hasHeader($headers, $name)) {
+                $headers[$name] = $value;
+            }
+        }
 
         $request = new Request($req['method'], $url, $headers, $body);
 
@@ -114,6 +121,15 @@ class RequestExecutor
     }
 
     /**
+     * Returns [body, suggestedHeaders]. Suggested headers are applied by
+     * execute() only when the caller hasn't already set the same header —
+     * an explicit per-request Content-Type always wins.
+     *
+     * For raw mode: when the body parses as JSON, suggest
+     * `Content-Type: application/json`. Mirrors Postman's auto-inject when
+     * raw language is set to JSON, and saves the consumer from having to
+     * remember to add it manually for every JSON request.
+     *
      * @return array{0:?string,1:array<string,string>}
      */
     protected function buildBody(?string $mode, mixed $body): array
@@ -122,7 +138,12 @@ class RequestExecutor
             return [null, []];
         }
         if ($mode === 'raw') {
-            return [(string) $body, []];
+            $bodyStr = (string) $body;
+            $suggested = [];
+            if ($bodyStr !== '' && $this->looksLikeJson($bodyStr)) {
+                $suggested = ['Content-Type' => 'application/json'];
+            }
+            return [$bodyStr, $suggested];
         }
         if ($mode === 'urlencoded' && is_array($body)) {
             $active = array_filter($body, fn (array $r) => empty($r['disabled']));
@@ -133,6 +154,33 @@ class RequestExecutor
             return [implode('&', $parts), ['Content-Type' => 'application/x-www-form-urlencoded']];
         }
         return [(string) $body, []];
+    }
+
+    /**
+     * @param array<string, string> $headers
+     */
+    protected function hasHeader(array $headers, string $name): bool
+    {
+        foreach ($headers as $key => $_value) {
+            if (strcasecmp($key, $name) === 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    protected function looksLikeJson(string $body): bool
+    {
+        $trimmed = ltrim($body);
+        if ($trimmed === '' || ($trimmed[0] !== '{' && $trimmed[0] !== '[')) {
+            return false;
+        }
+        try {
+            json_decode($body, associative: true, flags: JSON_THROW_ON_ERROR);
+            return true;
+        } catch (\JsonException) {
+            return false;
+        }
     }
 
     protected function buildResult(ResponseInterface $response, int $cap, int $timingMs): ResultDto
