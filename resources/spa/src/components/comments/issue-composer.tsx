@@ -3,6 +3,7 @@ import { useTabsStore } from '@/stores/tabs-store';
 import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useMetaStore } from '@/stores/meta-store';
 import { useLinkedIssuesStore } from '@/stores/linked-issues-store';
+import { uuidv4 } from '@/lib/uuid';
 import * as api from '@/api/issues';
 
 export function IssueComposer({
@@ -57,7 +58,7 @@ export function IssueComposer({
         title,
         body,
         assignee,
-        idempotency_key: crypto.randomUUID(),
+        idempotency_key: uuidv4(),
         context: {
           collection_name: '',
           request_path: tab.name,
