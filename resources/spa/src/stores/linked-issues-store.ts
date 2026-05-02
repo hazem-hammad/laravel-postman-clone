@@ -29,7 +29,12 @@ export const useLinkedIssuesStore = create<State>((set, get) => ({
   },
 
   async loadIssuesForRequest(collectionId, requestId) {
-    return get().issuesByKey[keyOf(collectionId, requestId)] ?? [];
+    if (!collectionId || !requestId) return [];
+    const list = await api.listIssues(collectionId, requestId);
+    set({
+      issuesByKey: { ...get().issuesByKey, [keyOf(collectionId, requestId)]: list },
+    });
+    return list;
   },
 
   async createIssue(input) {

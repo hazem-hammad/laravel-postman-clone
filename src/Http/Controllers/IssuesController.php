@@ -17,6 +17,26 @@ use Illuminate\Support\Facades\Cache;
 
 class IssuesController extends Controller
 {
+    public function index(Request $request): JsonResponse
+    {
+        $collectionId = (string) $request->query('collection_id', '');
+        $requestId = (string) $request->query('request_id', '');
+        if ($collectionId === '' || $requestId === '') {
+            return response()->json(['data' => []]);
+        }
+
+        $rows = LinkedIssue::query()
+            ->where('collection_id', $collectionId)
+            ->where('request_id', $requestId)
+            ->whereNull('deleted_at')
+            ->orderByDesc('id')
+            ->get();
+
+        return response()->json([
+            'data' => $rows->map(fn (LinkedIssue $li) => $this->serializeLinkedIssue($li))->all(),
+        ]);
+    }
+
     public function counts(Request $request): JsonResponse
     {
         $collectionId = (string) $request->query('collection_id', '');

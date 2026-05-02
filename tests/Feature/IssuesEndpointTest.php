@@ -24,6 +24,24 @@ it('counts returns aggregated counts grouped by request', function () {
         ->assertJsonPath('data.r2.open', 1);
 });
 
+it('index lists issues for a specific request, newest first, excluding deleted', function () {
+    LinkedIssue::create(['collection_id' => 'c1', 'request_id' => 'r1', 'issue_number' => 1, 'issue_title' => 'A', 'issue_state' => 'open', 'issue_html_url' => 'u', 'created_by_user_id' => 1]);
+    LinkedIssue::create(['collection_id' => 'c1', 'request_id' => 'r1', 'issue_number' => 2, 'issue_title' => 'B', 'issue_state' => 'closed', 'issue_html_url' => 'u', 'created_by_user_id' => 1]);
+    LinkedIssue::create(['collection_id' => 'c1', 'request_id' => 'r1', 'issue_number' => 3, 'issue_title' => 'gone', 'issue_state' => 'deleted', 'issue_html_url' => 'u', 'created_by_user_id' => 1, 'deleted_at' => now()]);
+    LinkedIssue::create(['collection_id' => 'c1', 'request_id' => 'r2', 'issue_number' => 4, 'issue_title' => 'other', 'issue_state' => 'open', 'issue_html_url' => 'u', 'created_by_user_id' => 1]);
+
+    $r = $this->getJson('/postman/api/issues?collection_id=c1&request_id=r1');
+    $r->assertStatus(200)
+        ->assertJsonCount(2, 'data')
+        ->assertJsonPath('data.0.issue_number', 2)
+        ->assertJsonPath('data.1.issue_number', 1);
+});
+
+it('index returns empty array when collection_id or request_id missing', function () {
+    expect($this->getJson('/postman/api/issues')->json('data'))->toBe([]);
+    expect($this->getJson('/postman/api/issues?collection_id=c1')->json('data'))->toBe([]);
+});
+
 it('counts excludes deleted issues', function () {
     LinkedIssue::create(['collection_id' => 'c1', 'request_id' => 'r1', 'issue_number' => 1, 'issue_title' => 'A', 'issue_state' => 'deleted', 'issue_html_url' => 'u', 'created_by_user_id' => 1, 'deleted_at' => now()]);
     expect($this->getJson('/postman/api/issues/counts?collection_id=c1')->json('data'))->toBe([]);

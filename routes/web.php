@@ -61,6 +61,7 @@ Route::group([
         Route::get('/runs/{id}', [HistoryController::class, 'show']);
         Route::delete('/runs/{id}', [HistoryController::class, 'destroy']);
 
+        Route::get('/issues', [IssuesController::class, 'index']);
         Route::get('/issues/counts', [IssuesController::class, 'counts']);
         Route::post('/issues', [IssuesController::class, 'store'])
             ->middleware('postman-clone.gh-auth');

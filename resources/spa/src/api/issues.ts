@@ -17,6 +17,11 @@ export type LinkedIssue = {
 
 export type Counts = Record<string, { open: number; closed: number }>;
 
+export const listIssues = (collectionId: string, requestId: string) =>
+  request<{ data: LinkedIssue[] }>(
+    `/issues?collection_id=${encodeURIComponent(collectionId)}&request_id=${encodeURIComponent(requestId)}`,
+  ).then((r) => r.data);
+
 export const getCounts = (collectionId: string) =>
   request<{ data: Counts }>(
     `/issues/counts?collection_id=${encodeURIComponent(collectionId)}`,

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTabsStore } from '@/stores/tabs-store';
 import { useLinkedIssuesStore } from '@/stores/linked-issues-store';
 import { IssueComposer } from './issue-composer';
@@ -6,12 +6,20 @@ import { IssueThreadList } from './issue-thread-list';
 
 export function CommentsPane({ tabId }: { tabId: string }) {
   const tab = useTabsStore((s) => s.tabs.find((t) => t.id === tabId));
+  const loadIssuesForRequest = useLinkedIssuesStore((s) => s.loadIssuesForRequest);
   const [composerOpen, setComposerOpen] = useState(false);
   const issues = useLinkedIssuesStore((s) =>
     tab && tab.collectionId && tab.requestId
       ? s.issuesByKey[`${tab.collectionId}::${tab.requestId}`] ?? []
       : [],
   );
+
+  useEffect(() => {
+    if (tab?.collectionId && tab?.requestId) {
+      void loadIssuesForRequest(tab.collectionId, tab.requestId).catch(() => undefined);
+    }
+  }, [tab?.collectionId, tab?.requestId, loadIssuesForRequest]);
+
   if (!tab) return null;
 
   return (
