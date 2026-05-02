@@ -8,6 +8,7 @@ use HazemHammad\PostmanClone\Http\Middleware\EnsureGithubAuthenticated;
 use HazemHammad\PostmanClone\Http\Middleware\EnsurePackageEnabled;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -94,14 +95,31 @@ class PostmanCloneServiceProvider extends ServiceProvider
             return;
         }
 
+        // Cheap signature check: count migration files in our path vs. rows
+        // in the migrations table on the storage connection. If they match,
+        // skip artisan migrate entirely (saves ~10ms per request). If not,
+        // a new migration shipped with a package upgrade — apply it.
         try {
-            if (Schema::connection('postman_clone_storage')->hasTable('runs')) {
-                return;
+            $migrationsPath = __DIR__ . '/../database/migrations';
+            $files = glob($migrationsPath . '/*.php') ?: [];
+            $expected = count($files);
+
+            if ($expected > 0 && Schema::connection('postman_clone_storage')->hasTable('migrations')) {
+                $applied = (int) DB::connection('postman_clone_storage')
+                    ->table('migrations')
+                    ->whereIn('migration', array_map(
+                        fn (string $f) => pathinfo($f, PATHINFO_FILENAME),
+                        $files,
+                    ))
+                    ->count();
+                if ($applied === $expected) {
+                    return;
+                }
             }
 
             Artisan::call('migrate', [
                 '--database' => 'postman_clone_storage',
-                '--path' => __DIR__ . '/../database/migrations',
+                '--path' => $migrationsPath,
                 '--realpath' => true,
                 '--force' => true,
             ]);
