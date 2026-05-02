@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useCollectionsStore } from '@/stores/collections-store';
 import { useTabsStore } from '@/stores/tabs-store';
 import { useUiStore } from '@/stores/ui-store';
-import type { FolderNode, RequestNode, TreeNode } from '@/api/types';
+import { applyOverride } from '@/stores/overrides-store';
+import { findRequestPath } from '@/lib/find-request';
 
 /**
  * Two-way binding between the active tab and the URL.
@@ -58,7 +59,7 @@ export function useUrlSync() {
       for (const folderId of found.folderPath) {
         setExpanded(`${collectionId}::folder::${folderId}`, true);
       }
-      openRequestTab({
+      openRequestTab(applyOverride({
         collectionId,
         requestId,
         name: found.request.name,
@@ -68,7 +69,7 @@ export function useUrlSync() {
         params: found.request.params,
         bodyMode: found.request.body_mode,
         body: found.request.body,
-      });
+      }));
     })();
     return () => {
       cancelled = true;
@@ -100,17 +101,3 @@ export function useUrlSync() {
   }, [activeId, tabs, navigate]);
 }
 
-type FoundRequest = { request: RequestNode; folderPath: string[] };
-
-function findRequestPath(items: TreeNode[], requestId: string, path: string[] = []): FoundRequest | null {
-  for (const item of items) {
-    if (item.type === 'request' && item.id === requestId) {
-      return { request: item, folderPath: path };
-    }
-    if (item.type === 'folder') {
-      const found = findRequestPath(item.items, requestId, [...path, item.id]);
-      if (found) return found;
-    }
-  }
-  return null;
-}

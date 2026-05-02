@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCollectionsStore } from '@/stores/collections-store';
 import { useTabsStore } from '@/stores/tabs-store';
 import { useUiStore } from '@/stores/ui-store';
+import { applyOverride } from '@/stores/overrides-store';
 import type { CollectionEntry, FolderNode, RequestNode, TreeNode } from '@/api/types';
 
 export function CollectionTree() {
@@ -98,7 +99,7 @@ function RequestItem({ item, collectionId }: { item: RequestNode; collectionId: 
     <li>
       <button
         onClick={() => {
-          open({
+          open(applyOverride({
             collectionId,
             requestId: item.id,
             name: item.name,
@@ -108,7 +109,7 @@ function RequestItem({ item, collectionId }: { item: RequestNode; collectionId: 
             params: item.params,
             bodyMode: item.body_mode,
             body: item.body,
-          });
+          }));
           navigate(`/collections/${encodeURIComponent(collectionId)}/requests/${encodeURIComponent(item.id)}`);
         }}
         className="w-full text-left px-2 py-1 text-sm hover:bg-zinc-200 flex items-center gap-2"
