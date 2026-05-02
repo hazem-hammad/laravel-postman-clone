@@ -34,8 +34,9 @@ class PostmanV21Parser
             description: $data['info']['description'] ?? null,
             variables: $this->parseVariables($data['variable'] ?? []),
             items: array_values(array_map(
-                fn (array $item) => $this->parseItem($item),
-                $data['item'] ?? []
+                fn (array $item, int $idx) => $this->parseItem($item, '', $idx),
+                $data['item'] ?? [],
+                array_keys($data['item'] ?? [])
             )),
         );
     }
@@ -55,23 +56,34 @@ class PostmanV21Parser
         return $out;
     }
 
-    protected function parseItem(array $item): Folder|Request
+    /**
+     * Parse one item. The path argument is the slash-joined names of the
+     * ancestor folders, used to derive a stable id when _postman_id is
+     * missing. Without this, ids would be random per parser run and any
+     * client that captured one (e.g. via a deep-link URL) would break on
+     * the next reload.
+     */
+    protected function parseItem(array $item, string $parentPath, int $index): Folder|Request
     {
+        $name = (string) ($item['name'] ?? 'Unnamed');
+        $path = $parentPath === '' ? $name : $parentPath . '/' . $name;
+
         if (isset($item['item']) && is_array($item['item'])) {
             return new Folder(
-                id: (string) ($item['_postman_id'] ?? bin2hex(random_bytes(8))),
-                name: (string) ($item['name'] ?? 'Folder'),
+                id: $this->itemId($item, 'folder', $path, $index),
+                name: $name,
                 items: array_values(array_map(
-                    fn (array $child) => $this->parseItem($child),
-                    $item['item']
+                    fn (array $child, int $childIdx) => $this->parseItem($child, $path, $childIdx),
+                    $item['item'],
+                    array_keys($item['item'])
                 )),
             );
         }
 
-        return $this->parseRequest($item);
+        return $this->parseRequest($item, $path, $index);
     }
 
-    protected function parseRequest(array $item): Request
+    protected function parseRequest(array $item, string $path, int $index): Request
     {
         $req = $item['request'] ?? [];
 
@@ -80,10 +92,12 @@ class PostmanV21Parser
             $url = (string) ($url['raw'] ?? '');
         }
 
+        $method = strtoupper((string) ($req['method'] ?? 'GET'));
+
         return new Request(
-            id: (string) ($item['_postman_id'] ?? bin2hex(random_bytes(8))),
+            id: $this->itemId($item, 'request', $path . '|' . $method . '|' . $url, $index),
             name: (string) ($item['name'] ?? 'Request'),
-            method: strtoupper((string) ($req['method'] ?? 'GET')),
+            method: $method,
             url: (string) $url,
             headers: array_values(array_map(
                 fn (array $h) => [
@@ -105,5 +119,20 @@ class PostmanV21Parser
             body: $req['body']['raw'] ?? $req['body']['formdata'] ?? $req['body']['urlencoded'] ?? null,
             auth: $req['auth'] ?? null,
         );
+    }
+
+    /**
+     * Stable id resolution:
+     *   1. _postman_id when present (the canonical Postman identifier)
+     *   2. otherwise, sha1 of (kind | path | index) — deterministic across
+     *      parser runs as long as the collection structure is unchanged
+     */
+    protected function itemId(array $item, string $kind, string $signature, int $index): string
+    {
+        $explicit = $item['_postman_id'] ?? null;
+        if (is_string($explicit) && $explicit !== '') {
+            return $explicit;
+        }
+        return substr(sha1($kind . '|' . $signature . '|' . $index), 0, 16);
     }
 }
