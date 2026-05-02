@@ -3,6 +3,7 @@
 namespace HazemHammad\PostmanClone;
 
 use GuzzleHttp\Client;
+use HazemHammad\PostmanClone\Console\InstallCommand;
 use HazemHammad\PostmanClone\Http\Middleware\EnsurePackageEnabled;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
@@ -29,6 +30,12 @@ class PostmanCloneServiceProvider extends ServiceProvider
         $router->aliasMiddleware('postman-clone.gate', EnsurePackageEnabled::class);
 
         $this->loadRoutesFrom(__DIR__ . '/../routes/web.php');
+
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                InstallCommand::class,
+            ]);
+        }
     }
 
     protected function registerStorageConnection(): void

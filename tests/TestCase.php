@@ -26,6 +26,11 @@ abstract class TestCase extends Orchestra
         parent::setUp();
 
         $this->artisan('migrate', ['--database' => 'postman_clone_storage'])->run();
+
+        $overridePath = storage_path('postman-clone/environments.local.json');
+        if (file_exists($overridePath)) {
+            @unlink($overridePath);
+        }
     }
 
     protected function fixturePath(string $name): string
