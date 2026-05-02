@@ -7,12 +7,25 @@ export type CollectionEntry = {
 
 export type EnvironmentSummary = { id: string; variable_count: number };
 
+export type GithubBootstrap = {
+  enabled: boolean;
+  repo: string | null;
+  current_user: {
+    id: number;
+    github_login: string;
+    name: string | null;
+    avatar_url: string;
+    has_repo_access: boolean;
+  } | null;
+};
+
 export type Bootstrap = {
   collections: CollectionEntry[];
   environments: EnvironmentSummary[];
   active_environment: string | null;
   history_count: number;
   git_branch: string | null;
+  github: GithubBootstrap;
 };
 
 export type KeyValue = { key: string; value: string; disabled?: boolean };

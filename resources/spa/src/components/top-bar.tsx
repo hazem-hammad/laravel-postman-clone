@@ -3,6 +3,7 @@ import { useHistoryStore } from '@/stores/history-store';
 import { useUiStore } from '@/stores/ui-store';
 import { useMetaStore } from '@/stores/meta-store';
 import { getRuntime } from '@/lib/runtime';
+import { UserMenu } from '@/components/user-menu';
 
 export function TopBar() {
   const { theme } = getRuntime();
@@ -68,6 +69,7 @@ export function TopBar() {
         >
           Manage env
         </button>
+        <UserMenu />
         <span
           title={`${historyCount} runs in history`}
           className="text-[11px] px-2 py-1 rounded-md bg-surface-2 text-fg-muted"

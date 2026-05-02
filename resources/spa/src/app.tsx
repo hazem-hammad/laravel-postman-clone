@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/sidebar/sidebar';
 import { Workspace } from '@/components/workspace/workspace';
 import { EnvPanel } from '@/components/env-panel/env-panel';
 import { StatusFooter } from '@/components/status-footer';
+import { useAuthStore } from '@/stores/auth-store';
 import { useCollectionsStore } from '@/stores/collections-store';
 import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useHistoryStore } from '@/stores/history-store';
@@ -28,6 +29,19 @@ export function App() {
           entries: boot.collections.map((c) => ({ ...c })),
         });
         useMetaStore.getState().setGitBranch(boot.git_branch);
+        useAuthStore.getState().setEnabled(boot.github.enabled);
+        useAuthStore.getState().setRepo(boot.github.repo);
+        useAuthStore.getState().setUser(
+          boot.github.current_user
+            ? {
+                id: boot.github.current_user.id,
+                githubLogin: boot.github.current_user.github_login,
+                name: boot.github.current_user.name,
+                avatarUrl: boot.github.current_user.avatar_url,
+                hasRepoAccess: boot.github.current_user.has_repo_access,
+              }
+            : null,
+        );
       } catch (e) {
         console.error('bootstrap failed', e);
       }

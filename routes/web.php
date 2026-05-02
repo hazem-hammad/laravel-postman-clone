@@ -35,12 +35,12 @@ Route::group([
 
     Route::get('/auth/github/start', [AuthController::class, 'start']);
     Route::get('/auth/github/callback', [AuthController::class, 'callback']);
-    Route::post('/auth/sign-out', [AuthController::class, 'signOut'])
-        ->middleware('postman-clone.gh-auth');
 
     Route::prefix('api')->group(function (): void {
         Route::get('/bootstrap', [BootstrapController::class, 'show']);
 
+        Route::post('/auth/sign-out', [AuthController::class, 'signOut'])
+            ->middleware('postman-clone.gh-auth');
         Route::get('/me', [MeController::class, 'show'])->middleware('postman-clone.gh-auth');
 
         Route::get('/collections', [CollectionsController::class, 'index']);
