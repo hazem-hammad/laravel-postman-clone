@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   listVarsInInput,
   renderTokens,
@@ -23,6 +24,9 @@ type Props = {
  * resolved value (or "unresolved" tag). Implementation mirrors the
  * JsonCodeArea overlay pattern: a transparent <input> stacked on top of
  * a styled <div> so the user types in plain text but sees colored vars.
+ *
+ * The popover is portaled to <body> with fixed positioning so it escapes
+ * any ancestor with `overflow: hidden` (e.g. the rounded URL bar shell).
  */
 export function VariableHighlightedInput({
   value,
@@ -37,13 +41,12 @@ export function VariableHighlightedInput({
   const tokens = tokenizeWithVariables(value, vars);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [hovering, setHovering] = useState(false);
 
   const inputVars = listVarsInInput(value, vars);
   const hasVars = inputVars.length > 0;
 
-  // Keep the overlay's horizontal scroll in sync with the input so colors
-  // don't drift when the value is wider than the box.
   const syncScroll = () => {
     const ta = inputRef.current;
     const ov = overlayRef.current;
@@ -56,6 +59,7 @@ export function VariableHighlightedInput({
 
   return (
     <div
+      ref={wrapperRef}
       className={`relative ${className ?? ''}`}
       onMouseEnter={() => hasVars && setHovering(true)}
       onMouseLeave={() => setHovering(false)}
@@ -87,21 +91,51 @@ export function VariableHighlightedInput({
         `}
         style={{ lineHeight: '1.5rem', caretColor: 'var(--pc-fg)' }}
       />
-      {hovering && hasVars ? <VarHoverPopover vars={inputVars} compact={compact} /> : null}
+      {hovering && hasVars ? (
+        <VarHoverPopover anchorRef={wrapperRef} vars={inputVars} />
+      ) : null}
     </div>
   );
 }
 
 function VarHoverPopover({
+  anchorRef,
   vars,
-  compact,
 }: {
+  anchorRef: React.RefObject<HTMLDivElement | null>;
   vars: ReturnType<typeof listVarsInInput>;
-  compact: boolean;
 }) {
-  return (
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const node = anchorRef.current;
+    if (!node) return;
+    const r = node.getBoundingClientRect();
+    setPos({ top: r.bottom + 4, left: r.left });
+  }, [anchorRef]);
+
+  // Keep the popover anchored when the user scrolls or resizes mid-hover.
+  useEffect(() => {
+    const update = () => {
+      const node = anchorRef.current;
+      if (!node) return;
+      const r = node.getBoundingClientRect();
+      setPos({ top: r.bottom + 4, left: r.left });
+    };
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+    };
+  }, [anchorRef]);
+
+  if (!pos) return null;
+
+  return createPortal(
     <div
-      className={`absolute z-30 top-full left-0 mt-1 bg-surface border border-line rounded-md shadow-lg p-2 min-w-[16rem] max-w-md text-xs ${compact ? '' : ''}`}
+      className="fixed z-50 bg-surface border border-line rounded-md shadow-lg p-2 min-w-[16rem] max-w-md text-xs"
+      style={{ top: pos.top, left: pos.left }}
       role="tooltip"
     >
       <div className="text-fg-subtle mb-1 text-[10px] uppercase tracking-wide font-semibold">
@@ -115,7 +149,13 @@ function VarHoverPopover({
               <code className="font-mono text-fg">{`{{${v.name}}}`}</code>
               <span className="text-fg-subtle">→</span>
               {v.resolved ? (
-                <span style={{ color: v.isSecret ? 'var(--pc-var-secret-fg)' : 'var(--pc-var-resolved-fg)' }}>
+                <span
+                  style={{
+                    color: v.isSecret
+                      ? 'var(--pc-var-secret-fg)'
+                      : 'var(--pc-var-resolved-fg)',
+                  }}
+                >
                   {v.isSecret ? '••••••' : v.value || <span className="italic text-fg-subtle">(empty)</span>}
                 </span>
               ) : (
@@ -125,6 +165,7 @@ function VarHoverPopover({
           );
         })}
       </ul>
-    </div>
+    </div>,
+    document.body,
   );
 }
