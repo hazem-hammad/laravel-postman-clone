@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTabsStore } from '@/stores/tabs-store';
 import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useMetaStore } from '@/stores/meta-store';
+import { useCollectionsStore } from '@/stores/collections-store';
 import { useLinkedIssuesStore } from '@/stores/linked-issues-store';
 import { uuidv4 } from '@/lib/uuid';
 import { ApiError } from '@/api/client';
@@ -17,6 +18,11 @@ export function IssueComposer({
   const tab = useTabsStore((s) => s.tabs.find((t) => t.id === tabId));
   const envId = useEnvironmentsStore((s) => s.activeId);
   const branch = useMetaStore((s) => s.gitBranch);
+  const collectionName = useCollectionsStore((s) =>
+    tab?.collectionId
+      ? s.entries.find((e) => e.id === tab.collectionId)?.name ?? null
+      : null,
+  );
   const create = useLinkedIssuesStore((s) => s.createIssue);
 
   const [title, setTitle] = useState(`Issue with ${tab?.name ?? 'request'}`);
@@ -61,7 +67,7 @@ export function IssueComposer({
         assignee,
         idempotency_key: uuidv4(),
         context: {
-          collection_name: '',
+          collection_name: collectionName,
           request_path: tab.name,
           method: tab.method,
           url_raw: tab.url,
