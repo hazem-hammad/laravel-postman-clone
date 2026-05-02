@@ -85,12 +85,25 @@ export function useUrlSync() {
       hasInitializedRef.current = true;
       return;
     }
+
+    const current = window.location.pathname.replace(/^\/[^/]+/, '') || '/';
+
+    // All tabs closed → reset URL to the workspace root. Only safe to do
+    // post-initialization (the boot-time empty-tabs case is handled by
+    // the hasInitializedRef gate above so a deep-link URL isn't wiped).
+    if (tabs.length === 0) {
+      if (current !== '/') {
+        navigate('/', { replace: true });
+        lastSyncedRef.current = { collectionId: null, requestId: null };
+      }
+      return;
+    }
+
     const active = tabs.find((t) => t.id === activeId);
     if (!active || !active.collectionId || !active.requestId) {
       return;
     }
     const target = `/collections/${encodeURIComponent(active.collectionId)}/requests/${encodeURIComponent(active.requestId)}`;
-    const current = window.location.pathname.replace(/^\/[^/]+/, '') || '/';
     if (current !== target) {
       navigate(target, { replace: true });
       lastSyncedRef.current = {
