@@ -1,12 +1,44 @@
-import { getRuntime } from '@/lib/runtime';
+import { useEffect } from 'react';
+import { TopBar } from '@/components/top-bar';
+import { Sidebar } from '@/components/sidebar/sidebar';
+import { Workspace } from '@/components/workspace/workspace';
+import { useCollectionsStore } from '@/stores/collections-store';
+import { useEnvironmentsStore } from '@/stores/environments-store';
+import { useHistoryStore } from '@/stores/history-store';
+import { fetchBootstrap } from '@/api/bootstrap';
 
 export function App() {
-  const { theme } = getRuntime();
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const boot = await fetchBootstrap();
+        if (cancelled) return;
+        useEnvironmentsStore.setState({
+          activeId: boot.active_environment,
+        });
+        useHistoryStore.setState({ total: boot.history_count });
+        useCollectionsStore.setState({
+          entries: boot.collections.map((c) => ({ ...c })),
+        });
+      } catch (e) {
+        console.error('bootstrap failed', e);
+      }
+    })();
+    void useCollectionsStore.getState().refresh();
+    void useEnvironmentsStore.getState().refresh();
+    void useHistoryStore.getState().refresh();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
-    <div className="h-full flex items-center justify-center text-zinc-700">
-      <div className="text-center">
-        <h1 className="text-3xl font-semibold">{theme.app_name}</h1>
-        <p className="text-sm text-zinc-500 mt-2">SPA scaffold — Phase 0 complete.</p>
+    <div className="h-full flex flex-col">
+      <TopBar />
+      <div className="flex-1 flex overflow-hidden">
+        <Sidebar />
+        <Workspace />
       </div>
     </div>
   );
