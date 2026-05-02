@@ -4,8 +4,9 @@ const ALLOWED_TAGS = [
   'a', 'code', 'pre', 'blockquote', 'table', 'thead', 'tbody', 'tr', 'td', 'th',
   'img', 'em', 'strong', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
   'p', 'hr', 'br', 'span', 'div', 'del', 'sup', 'sub',
+  'article', 'header', 'time',
 ];
-const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'class', 'lang'];
+const ALLOWED_ATTR = ['href', 'src', 'alt', 'title', 'class', 'lang', 'datetime'];
 
 export function sanitizeIssueHtml(html: string): string {
   const clean = DOMPurify.sanitize(html, {

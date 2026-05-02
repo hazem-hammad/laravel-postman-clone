@@ -100,11 +100,19 @@ class GithubClient
             'Accept' => 'application/vnd.github.html+json',
         ]);
 
-        $html = ($issueJson['body_html'] ?? '');
+        $html = $this->renderPostBlock(
+            $issueJson['user'] ?? [],
+            $issueJson['created_at'] ?? null,
+            $issueJson['body_html'] ?? '',
+            true,
+        );
         foreach ($comments as $c) {
-            $html .= "\n<hr/>\n<div class=\"pmc-comment\"><strong>".
-                htmlspecialchars($c['user']['login'] ?? '').'</strong>'.
-                ($c['body_html'] ?? '').'</div>';
+            $html .= $this->renderPostBlock(
+                $c['user'] ?? [],
+                $c['created_at'] ?? null,
+                $c['body_html'] ?? '',
+                false,
+            );
         }
 
         return [
@@ -117,6 +125,30 @@ class GithubClient
             'html_url' => $issueJson['html_url'] ?? '',
             'assignee_login' => $issueJson['assignees'][0]['login'] ?? null,
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $user
+     */
+    protected function renderPostBlock(array $user, ?string $createdAt, string $bodyHtml, bool $isOriginalPost): string
+    {
+        $login = htmlspecialchars((string) ($user['login'] ?? 'unknown'), ENT_QUOTES);
+        $avatar = htmlspecialchars((string) ($user['avatar_url'] ?? ''), ENT_QUOTES);
+        $time = $createdAt ? htmlspecialchars($createdAt, ENT_QUOTES) : '';
+        $kindClass = $isOriginalPost ? 'pmc-post pmc-post--op' : 'pmc-post pmc-post--reply';
+        $body = $bodyHtml !== '' ? $bodyHtml : '<p class="pmc-empty"><em>No content.</em></p>';
+
+        return <<<HTML
+<article class="{$kindClass}">
+  <header class="pmc-post-header">
+    <img class="pmc-avatar" src="{$avatar}" alt="" />
+    <span class="pmc-author">{$login}</span>
+    <time class="pmc-time" datetime="{$time}">{$time}</time>
+  </header>
+  <div class="pmc-post-body">{$body}</div>
+</article>
+
+HTML;
     }
 
     /**

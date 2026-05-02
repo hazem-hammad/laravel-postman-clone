@@ -133,11 +133,11 @@ it('thread fetches and caches on cache miss', function () {
     ]);
     $this->app->bind(Client::class, fn () => new Client(['handler' => HandlerStack::create($mock), 'base_uri' => 'https://api.github.com/']));
 
-    $this->withSession(['postman_clone_user_id' => $u->id])
-        ->getJson("/postman/api/issues/{$li->id}/thread")
-        ->assertStatus(200)
-        ->assertJsonPath('issue_title', 'Updated')
-        ->assertJsonPath('thread_html', '<p>fresh</p>');
+    $resp = $this->withSession(['postman_clone_user_id' => $u->id])
+        ->getJson("/postman/api/issues/{$li->id}/thread");
+    $resp->assertStatus(200)->assertJsonPath('issue_title', 'Updated');
+    expect($resp->json('thread_html'))->toContain('<p>fresh</p>');
+    expect($resp->json('thread_html'))->toContain('class="pmc-post pmc-post--op"');
 });
 
 it('sync-status updates state and handles deleted issues', function () {
