@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { TopBar } from '@/components/top-bar';
 import { Sidebar } from '@/components/sidebar/sidebar';
 import { Workspace } from '@/components/workspace/workspace';
+import { EnvPanel } from '@/components/env-panel/env-panel';
 import { useCollectionsStore } from '@/stores/collections-store';
 import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useHistoryStore } from '@/stores/history-store';
@@ -40,6 +41,7 @@ export function App() {
         <Sidebar />
         <Workspace />
       </div>
+      <EnvPanel />
     </div>
   );
 }

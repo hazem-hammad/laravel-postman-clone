@@ -1,5 +1,6 @@
 import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useHistoryStore } from '@/stores/history-store';
+import { useUiStore } from '@/stores/ui-store';
 import { getRuntime } from '@/lib/runtime';
 
 export function TopBar() {
@@ -8,6 +9,7 @@ export function TopBar() {
   const activeId = useEnvironmentsStore((s) => s.activeId);
   const setActive = useEnvironmentsStore((s) => s.setActive);
   const historyCount = useHistoryStore((s) => s.total);
+  const toggleEnv = useUiStore((s) => s.toggleEnvPanel);
 
   return (
     <header className="h-12 px-4 flex items-center justify-between border-b border-zinc-200 bg-white">
@@ -26,6 +28,10 @@ export function TopBar() {
             <option key={e.id} value={e.id}>{e.id}</option>
           ))}
         </select>
+        <button
+          onClick={toggleEnv}
+          className="text-xs px-2 py-1 rounded border border-zinc-300 hover:bg-zinc-50"
+        >Manage env</button>
         <span className="text-xs text-zinc-500">{historyCount} runs</span>
       </div>
     </header>
