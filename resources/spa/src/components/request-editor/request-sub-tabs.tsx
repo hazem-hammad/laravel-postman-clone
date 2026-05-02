@@ -1,4 +1,5 @@
-import { useUiStore, type RequestSubTab } from '@/stores/ui-store';
+import { useTabsStore } from '@/stores/tabs-store';
+import type { RequestSubTab } from '@/stores/ui-store';
 
 const TABS: { id: RequestSubTab; label: string }[] = [
   { id: 'params', label: 'Params' },
@@ -7,16 +8,19 @@ const TABS: { id: RequestSubTab; label: string }[] = [
   { id: 'auth', label: 'Auth' },
 ];
 
-export function RequestSubTabs() {
-  const active = useUiStore((s) => s.requestSubTab);
-  const setActive = useUiStore((s) => s.setRequestSubTab);
+export function RequestSubTabs({ tabId }: { tabId: string }) {
+  const tab = useTabsStore((s) => s.tabs.find((t) => t.id === tabId));
+  const setSubTab = useTabsStore((s) => s.setSubTab);
+  if (!tab) return null;
+
+  const active = tab.subTab;
 
   return (
     <div className="flex border-b border-zinc-200">
       {TABS.map((t) => (
         <button
           key={t.id}
-          onClick={() => setActive(t.id)}
+          onClick={() => setSubTab(tabId, t.id)}
           className={`px-4 py-2 text-sm border-b-2 ${
             active === t.id
               ? 'border-primary text-zinc-900'

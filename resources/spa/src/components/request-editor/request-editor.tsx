@@ -1,7 +1,6 @@
 import { useTabsStore } from '@/stores/tabs-store';
 import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useHistoryStore } from '@/stores/history-store';
-import { useUiStore } from '@/stores/ui-store';
 import { sendRun } from '@/api/runs';
 import { ApiError } from '@/api/client';
 import { rebuildUrlWithParams } from '@/lib/url-params-sync';
@@ -16,8 +15,8 @@ export function RequestEditor({ tabId }: { tabId: string }) {
   const update = useTabsStore((s) => s.updateTab);
   const setSending = useTabsStore((s) => s.setSending);
   const setResult = useTabsStore((s) => s.setResult);
-  const sub = useUiStore((s) => s.requestSubTab);
   if (!tab) return null;
+  const sub = tab.subTab;
 
   const send = async () => {
     setSending(tab.id, true);
@@ -73,7 +72,7 @@ export function RequestEditor({ tabId }: { tabId: string }) {
   return (
     <section className="border-b border-zinc-200 flex flex-col" style={{ minHeight: '40%' }}>
       <MethodUrlBar tabId={tabId} onSend={send} />
-      <RequestSubTabs />
+      <RequestSubTabs tabId={tabId} />
       <div className="flex-1 overflow-auto">
         {sub === 'params' && (
           <KeyValueTable
