@@ -1,4 +1,5 @@
 import type { KeyValue } from '@/api/types';
+import { VariableHighlightedInput } from '@/components/variable-highlighted-input';
 
 type Props = {
   rows: KeyValue[];
@@ -43,19 +44,21 @@ export function KeyValueTable({ rows, onChange, placeholder }: Props) {
                 ) : null}
               </td>
               <td className="px-2 py-1">
-                <input
-                  className="w-full bg-transparent border-0 outline-none px-1 py-0.5 focus:bg-zinc-50"
+                <VariableHighlightedInput
                   value={row.key}
+                  onChange={(next) => update(i, { key: next })}
                   placeholder={`${placeholder} key`}
-                  onChange={(e) => update(i, { key: e.target.value })}
+                  compact
+                  className="w-full"
                 />
               </td>
               <td className="px-2 py-1">
-                <input
-                  className="w-full bg-transparent border-0 outline-none px-1 py-0.5 focus:bg-zinc-50"
+                <VariableHighlightedInput
                   value={row.value}
+                  onChange={(next) => update(i, { value: next })}
                   placeholder="value"
-                  onChange={(e) => update(i, { value: e.target.value })}
+                  compact
+                  className="w-full"
                 />
               </td>
               <td className="px-2 py-1 text-center">

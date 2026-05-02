@@ -1,4 +1,5 @@
 import { useTabsStore } from '@/stores/tabs-store';
+import { VariableHighlightedInput } from '@/components/variable-highlighted-input';
 
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
 
@@ -16,11 +17,11 @@ export function MethodUrlBar({ tabId, onSend }: { tabId: string; onSend: () => v
       >
         {METHODS.map((m) => <option key={m}>{m}</option>)}
       </select>
-      <input
+      <VariableHighlightedInput
         value={tab.url}
-        onChange={(e) => update(tabId, { url: e.target.value })}
+        onChange={(next) => update(tabId, { url: next })}
         placeholder="https://api.example.com/path or {{base_url}}/path"
-        className="flex-1 border border-zinc-300 rounded px-3 py-1.5 text-sm font-mono"
+        className="flex-1 border border-zinc-300 rounded"
       />
       <button
         onClick={onSend}
