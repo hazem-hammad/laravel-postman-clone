@@ -97,17 +97,17 @@ export function MethodUrlBar({ tabId, onSend }: { tabId: string; onSend: () => v
 
       {/* Row 2: method dropdown + URL + Send */}
       <div className="flex items-stretch gap-2 px-4 pb-3">
-        <div className="flex-1 flex items-stretch border border-line rounded-md bg-surface-2 overflow-hidden focus-within:border-fg-subtle">
+        <div className="flex-1 flex items-stretch border border-line rounded-lg bg-surface-2 overflow-hidden focus-within:border-accent/60 focus-within:ring-1 focus-within:ring-accent/40 transition-shadow">
           <div className="relative shrink-0">
             <span
-              className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm font-bold pointer-events-none ${methodTextClass(tab.method)}`}
+              className={`absolute left-3.5 top-1/2 -translate-y-1/2 text-[13px] font-bold pointer-events-none ${methodTextClass(tab.method)}`}
             >
               {short(tab.method)}
             </span>
             <select
               value={tab.method}
               onChange={(e) => update(tabId, { method: e.target.value })}
-              className="appearance-none bg-transparent pl-3 pr-8 h-full text-sm font-bold text-transparent outline-none cursor-pointer w-[6rem] border-r border-line-subtle"
+              className="appearance-none bg-transparent pl-3 pr-9 h-full text-[13px] font-bold text-transparent outline-none cursor-pointer w-[7rem] border-r border-line-subtle"
               aria-label="HTTP method"
             >
               {METHODS.map((m) => (
@@ -121,7 +121,7 @@ export function MethodUrlBar({ tabId, onSend }: { tabId: string; onSend: () => v
               width="10"
               height="10"
               aria-hidden
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-fg-subtle pointer-events-none"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-fg-subtle pointer-events-none"
             >
               <path fill="currentColor" d="M4 6l4 4 4-4z" />
             </svg>
@@ -142,7 +142,7 @@ export function MethodUrlBar({ tabId, onSend }: { tabId: string; onSend: () => v
         <button
           onClick={onSend}
           disabled={tab.sending}
-          className="px-6 py-2 rounded-md text-sm font-semibold bg-accent hover:bg-accent-hover text-accent-text disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+          className="px-7 py-2 rounded-lg text-sm font-semibold bg-accent hover:bg-accent-hover text-accent-text disabled:opacity-50 disabled:cursor-not-allowed shrink-0 shadow-sm shadow-accent/30 transition-colors"
         >
           {tab.sending ? 'Sending…' : 'Send'}
         </button>

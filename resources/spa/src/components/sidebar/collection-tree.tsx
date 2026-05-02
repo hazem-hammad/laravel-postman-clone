@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCollectionsStore } from '@/stores/collections-store';
 import { useLinkedIssuesStore } from '@/stores/linked-issues-store';
@@ -13,17 +14,44 @@ export function CollectionTree({
   onShowIssues?: (collectionId: string) => void;
 }) {
   const entries = useCollectionsStore((s) => s.entries);
+  const [filter, setFilter] = useState('');
+  const q = filter.trim().toLowerCase();
 
   if (entries.length === 0) {
     return <div className="text-xs text-fg-subtle px-3 py-1">No collections configured.</div>;
   }
 
   return (
-    <ul>
-      {entries.map((e) => (
-        <CollectionNode key={e.id} entry={e} onShowIssues={onShowIssues} />
-      ))}
-    </ul>
+    <div>
+      <div className="px-3 pb-2">
+        <div className="relative">
+          <svg
+            viewBox="0 0 16 16"
+            width="11"
+            height="11"
+            aria-hidden
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-subtle pointer-events-none"
+          >
+            <path
+              fill="currentColor"
+              d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.03a.75.75 0 1 1-1.06 1.06l-3.04-3.03z"
+            />
+          </svg>
+          <input
+            type="text"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder="Filter requests…"
+            className="w-full bg-surface-2 border border-line-subtle rounded-md pl-7 pr-2 py-1 text-xs text-fg placeholder:text-fg-subtle outline-none focus:border-line"
+          />
+        </div>
+      </div>
+      <ul>
+        {entries.map((e) => (
+          <CollectionNode key={e.id} entry={e} filter={q} onShowIssues={onShowIssues} />
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -41,11 +69,25 @@ function Caret({ open }: { open: boolean }) {
   );
 }
 
+function nodeMatchesFilter(item: TreeNode, q: string): boolean {
+  if (!q) return true;
+  if (item.type === 'request') {
+    return (
+      item.name.toLowerCase().includes(q) ||
+      item.url.toLowerCase().includes(q) ||
+      item.method.toLowerCase().includes(q)
+    );
+  }
+  return item.items.some((c) => nodeMatchesFilter(c, q));
+}
+
 function CollectionNode({
   entry,
+  filter,
   onShowIssues,
 }: {
   entry: CollectionEntry;
+  filter: string;
   onShowIssues?: (collectionId: string) => void;
 }) {
   const isExpanded = useUiStore((s) => s.isExpanded(entry.id));
@@ -99,9 +141,18 @@ function CollectionNode({
           </button>
         ) : null}
       </div>
-      {isExpanded && detail ? (
+      {(isExpanded || filter) && detail ? (
         <ul className="ml-3 border-l border-line-subtle">
-          {detail.items.map((item) => <TreeItem key={item.id} item={item} collectionId={entry.id} />)}
+          {detail.items
+            .filter((item) => nodeMatchesFilter(item, filter))
+            .map((item) => (
+              <TreeItem
+                key={item.id}
+                item={item}
+                collectionId={entry.id}
+                filter={filter}
+              />
+            ))}
         </ul>
       ) : null}
     </li>
@@ -161,30 +212,55 @@ function FolderGlyph({ open }: { open: boolean }) {
   );
 }
 
-function TreeItem({ item, collectionId }: { item: TreeNode; collectionId: string }) {
+function TreeItem({
+  item,
+  collectionId,
+  filter,
+}: {
+  item: TreeNode;
+  collectionId: string;
+  filter: string;
+}) {
   if (item.type === 'folder') {
-    return <FolderItem item={item} collectionId={collectionId} />;
+    return <FolderItem item={item} collectionId={collectionId} filter={filter} />;
   }
   return <RequestItem item={item} collectionId={collectionId} />;
 }
 
-function FolderItem({ item, collectionId }: { item: FolderNode; collectionId: string }) {
+function FolderItem({
+  item,
+  collectionId,
+  filter,
+}: {
+  item: FolderNode;
+  collectionId: string;
+  filter: string;
+}) {
   const folderKey = `${collectionId}::folder::${item.id}`;
   const isExpanded = useUiStore((s) => s.isExpanded(folderKey));
   const setExpanded = useUiStore((s) => s.setExpanded);
+  const filteredChildren = useMemo(
+    () => item.items.filter((c) => nodeMatchesFilter(c, filter)),
+    [item.items, filter],
+  );
+  // When the user typed a filter, force-expand any folder that has surviving
+  // descendants so they actually see the matches.
+  const showChildren = isExpanded || (filter !== '' && filteredChildren.length > 0);
   return (
     <li>
       <button
         onClick={() => setExpanded(folderKey, !isExpanded)}
         className="w-full text-left px-2 py-1 text-sm hover:bg-surface-hover flex items-center gap-1.5"
       >
-        <Caret open={isExpanded} />
-        <FolderGlyph open={isExpanded} />
+        <Caret open={showChildren} />
+        <FolderGlyph open={showChildren} />
         <span className="text-fg truncate">{item.name}</span>
       </button>
-      {isExpanded ? (
+      {showChildren ? (
         <ul className="ml-3 border-l border-line-subtle">
-          {item.items.map((c) => <TreeItem key={c.id} item={c} collectionId={collectionId} />)}
+          {filteredChildren.map((c) => (
+            <TreeItem key={c.id} item={c} collectionId={collectionId} filter={filter} />
+          ))}
         </ul>
       ) : null}
     </li>
@@ -218,13 +294,13 @@ function RequestItem({ item, collectionId }: { item: RequestNode; collectionId: 
           }));
           navigate(`/collections/${encodeURIComponent(collectionId)}/requests/${encodeURIComponent(item.id)}`);
         }}
-        className={`w-full text-left pl-7 pr-2 py-1 text-sm flex items-center gap-2 ${
-          isActive ? 'bg-surface-hover text-fg' : 'hover:bg-surface-hover text-fg'
+        className={`w-full text-left pl-3 pr-2 py-1.5 text-[13px] flex items-center gap-2 ${
+          isActive
+            ? 'bg-accent/10 text-fg border-l-2 border-accent'
+            : 'hover:bg-surface-hover text-fg border-l-2 border-transparent'
         }`}
       >
-        <span className={`text-[10px] font-bold w-10 shrink-0 ${methodTextClass(item.method)}`}>
-          {shortMethod(item.method)}
-        </span>
+        <MethodPill method={item.method} />
         <span className="truncate">{item.name}</span>
       </button>
     </li>
@@ -236,4 +312,16 @@ function shortMethod(m: string): string {
   if (upper === 'DELETE') return 'DEL';
   if (upper === 'OPTIONS') return 'OPT';
   return upper;
+}
+
+function MethodPill({ method }: { method: string }) {
+  return (
+    <span
+      className={`text-[10px] font-bold w-11 shrink-0 text-center px-1.5 py-0.5 rounded bg-surface-3/60 ${methodTextClass(
+        method,
+      )}`}
+    >
+      {shortMethod(method)}
+    </span>
+  );
 }
