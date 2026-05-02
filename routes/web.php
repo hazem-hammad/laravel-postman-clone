@@ -6,6 +6,7 @@ use HazemHammad\PostmanClone\Http\Controllers\BootstrapController;
 use HazemHammad\PostmanClone\Http\Controllers\CollectionsController;
 use HazemHammad\PostmanClone\Http\Controllers\EnvironmentsController;
 use HazemHammad\PostmanClone\Http\Controllers\HistoryController;
+use HazemHammad\PostmanClone\Http\Controllers\IssuesController;
 use HazemHammad\PostmanClone\Http\Controllers\MeController;
 use HazemHammad\PostmanClone\Http\Controllers\RequestRunnerController;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +56,20 @@ Route::group([
         Route::get('/history', [HistoryController::class, 'index']);
         Route::get('/runs/{id}', [HistoryController::class, 'show']);
         Route::delete('/runs/{id}', [HistoryController::class, 'destroy']);
+
+        Route::get('/issues/counts', [IssuesController::class, 'counts']);
+        Route::post('/issues', [IssuesController::class, 'store'])
+            ->middleware('postman-clone.gh-auth');
+        Route::post('/issues/sync-status', [IssuesController::class, 'syncStatus'])
+            ->middleware('postman-clone.gh-auth');
+        Route::get('/issues/suggest-assignee', [IssuesController::class, 'suggestAssignee'])
+            ->middleware('postman-clone.gh-auth');
+        Route::get('/issues/collaborators', [IssuesController::class, 'collaborators'])
+            ->middleware('postman-clone.gh-auth');
+        Route::get('/issues/{id}/thread', [IssuesController::class, 'thread'])
+            ->middleware('postman-clone.gh-auth')->whereNumber('id');
+        Route::post('/issues/{id}/refresh', [IssuesController::class, 'refresh'])
+            ->middleware('postman-clone.gh-auth')->whereNumber('id');
     });
 
     // SPA catch-all — any deep link under /postman/ that isn't /api/* or

@@ -6,15 +6,19 @@ use HazemHammad\PostmanClone\Models\User;
 
 class AssigneeSuggester
 {
-    /**
-     * @param  callable():?GithubClient  $githubClientFactory  builder for an authenticated client
-     */
+    /** @var (callable():?GithubClient)|null */
+    private $githubClientFactory = null;
+
     public function __construct(
         private readonly RouteFileResolver $routeFileResolver,
         private readonly GitLogReader $gitLogReader,
-        private readonly mixed $githubClientFactory,
         private readonly string $hostBasePath,
     ) {
+    }
+
+    public function setClientFactory(callable $factory): void
+    {
+        $this->githubClientFactory = $factory;
     }
 
     /**
@@ -47,6 +51,9 @@ class AssigneeSuggester
             }
         }
 
+        if ($this->githubClientFactory === null) {
+            return null;
+        }
         $client = ($this->githubClientFactory)();
         if (! $client instanceof GithubClient) {
             return null;
