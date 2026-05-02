@@ -11,6 +11,8 @@ export function IssueThread({ issue }: { issue: LinkedIssue }) {
     if (!issue.thread_html) void ensure(issue.id);
   }, [issue.id]);
 
+  const fetched = Boolean(issue.thread_fetched_at);
+
   return (
     <div className="border-t border-line-subtle px-3 py-2">
       {issue.thread_html ? (
@@ -18,6 +20,10 @@ export function IssueThread({ issue }: { issue: LinkedIssue }) {
           className="text-xs text-fg leading-relaxed [&_a]:text-accent [&_a]:underline [&_pre]:bg-surface [&_pre]:p-2 [&_pre]:rounded"
           dangerouslySetInnerHTML={{ __html: sanitizeIssueHtml(issue.thread_html) }}
         />
+      ) : fetched ? (
+        <div className="text-fg-subtle text-xs italic">
+          No body or replies yet — open on GitHub to add the first comment.
+        </div>
       ) : (
         <div className="text-fg-subtle text-xs">Loading thread…</div>
       )}

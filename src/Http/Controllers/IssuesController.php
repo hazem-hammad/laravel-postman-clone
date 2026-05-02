@@ -260,6 +260,8 @@ class IssuesController extends Controller
     {
         return [
             'id' => $li->id,
+            'collection_id' => $li->collection_id,
+            'request_id' => $li->request_id,
             'issue_number' => $li->issue_number,
             'issue_title' => $li->issue_title,
             'issue_state' => $li->issue_state,

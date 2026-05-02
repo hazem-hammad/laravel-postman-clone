@@ -7,6 +7,7 @@ import { IssueThreadList } from './issue-thread-list';
 export function CommentsPane({ tabId }: { tabId: string }) {
   const tab = useTabsStore((s) => s.tabs.find((t) => t.id === tabId));
   const loadIssuesForRequest = useLinkedIssuesStore((s) => s.loadIssuesForRequest);
+  const syncStatus = useLinkedIssuesStore((s) => s.syncStatus);
   const [composerOpen, setComposerOpen] = useState(false);
   const issues = useLinkedIssuesStore((s) =>
     tab && tab.collectionId && tab.requestId
@@ -15,10 +16,18 @@ export function CommentsPane({ tabId }: { tabId: string }) {
   );
 
   useEffect(() => {
-    if (tab?.collectionId && tab?.requestId) {
-      void loadIssuesForRequest(tab.collectionId, tab.requestId).catch(() => undefined);
-    }
-  }, [tab?.collectionId, tab?.requestId, loadIssuesForRequest]);
+    if (!tab?.collectionId || !tab?.requestId) return;
+    (async () => {
+      try {
+        const list = await loadIssuesForRequest(tab.collectionId!, tab.requestId!);
+        if (list.length > 0) {
+          await syncStatus(list.map((i) => i.id));
+        }
+      } catch {
+        // best-effort — pane stays usable on partial failure
+      }
+    })();
+  }, [tab?.collectionId, tab?.requestId, loadIssuesForRequest, syncStatus]);
 
   if (!tab) return null;
 
