@@ -4,6 +4,7 @@ import { useEnvironmentsStore } from '@/stores/environments-store';
 import { useMetaStore } from '@/stores/meta-store';
 import { useLinkedIssuesStore } from '@/stores/linked-issues-store';
 import { uuidv4 } from '@/lib/uuid';
+import { ApiError } from '@/api/client';
 import * as api from '@/api/issues';
 
 export function IssueComposer({
@@ -79,7 +80,22 @@ export function IssueComposer({
       });
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to create issue');
+      if (e instanceof ApiError) {
+        const payload = (e.payload ?? {}) as {
+          message?: string;
+          errors?: Record<string, string[]>;
+        };
+        const fieldErrors = payload.errors
+          ? Object.entries(payload.errors)
+              .map(([k, msgs]) => `${k}: ${msgs.join(', ')}`)
+              .join(' · ')
+          : null;
+        setError(
+          fieldErrors ?? payload.message ?? `Failed to create issue (HTTP ${e.status})`,
+        );
+      } else {
+        setError(e instanceof Error ? e.message : 'Failed to create issue');
+      }
     } finally {
       setSubmitting(false);
     }
