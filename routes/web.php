@@ -12,7 +12,11 @@ use HazemHammad\PostmanClone\Http\Controllers\RequestRunnerController;
 use Illuminate\Support\Facades\Route;
 
 $prefix = config('postman-clone.route.prefix', 'postman');
-$middleware = array_merge(['postman-clone.gate'], config('postman-clone.access.middleware', []));
+// `web` is required so StartSession + cookie middleware fire — the GitHub
+// OAuth flow stores a CSRF nonce in the session and reads it back after the
+// redirect roundtrip, and the package's session-based "current user" lookup
+// needs the same. Host-side middleware from access.middleware piles on top.
+$middleware = array_merge(['web', 'postman-clone.gate'], config('postman-clone.access.middleware', []));
 
 Route::group([
     'prefix' => $prefix,

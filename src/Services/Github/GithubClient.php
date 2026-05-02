@@ -212,8 +212,11 @@ class GithubClient
             'X-GitHub-Api-Version' => '2022-11-28',
             'User-Agent' => 'postman-clone',
         ];
+        $url = preg_match('#^https?://#', $path) === 1
+            ? $path
+            : rtrim((string) config('postman-clone.github.api_base', 'https://api.github.com'), '/').'/'.ltrim($path, '/');
         try {
-            $response = $this->http->request($method, $path, [
+            $response = $this->http->request($method, $url, [
                 'headers' => $headers,
                 'json' => $opts['json'] ?? null,
                 'http_errors' => false,
