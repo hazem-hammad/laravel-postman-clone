@@ -25,9 +25,13 @@ export function RequestEditor({
   if (!tab) return null;
   const sub = tab.subTab;
 
+  // In horizontal split, lock both panes to a hard 50/50 (basis-1/2 + flex-1)
+  // and add `min-w-0` so flex children can actually shrink past their content
+  // intrinsic width — without it, a long JSON line in the response pane would
+  // push the response side wider and squeeze the request side.
   const sectionClass =
     layout === 'horizontal'
-      ? 'border-r border-line-subtle flex flex-col bg-app w-1/2 min-w-[320px]'
+      ? 'border-r border-line-subtle flex flex-col bg-app basis-1/2 flex-1 min-w-0'
       : 'border-b border-line-subtle flex flex-col bg-app';
   const sectionStyle: React.CSSProperties =
     layout === 'horizontal' ? {} : { minHeight: '40%' };

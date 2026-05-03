@@ -29,9 +29,13 @@ export function ResponseViewer({
 
   // In horizontal layout the divider becomes vertical (handled by RequestEditor's
   // border-r). Drop the border-t we'd use for the stacked layout.
+  // basis-1/2 + flex-1 + min-w-0 mirrors the request side so the split is a
+  // true 50/50 in horizontal mode, regardless of how wide the response body
+  // wants to be — wide JSON now scrolls inside the response pane instead of
+  // pushing the divider rightward.
   const sectionClass =
     layout === 'horizontal'
-      ? 'flex-1 flex flex-col min-h-0 bg-app'
+      ? 'flex flex-col min-h-0 bg-app basis-1/2 flex-1 min-w-0'
       : 'flex-1 flex flex-col min-h-0 border-t border-line-subtle bg-app';
 
   return (

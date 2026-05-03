@@ -51,15 +51,21 @@ export function ResponseBodyView({ result }: { result: RunResult | null }) {
   const isImage = contentType.startsWith('image/');
 
   return (
-    <div className="flex-1 flex flex-col min-h-0" style={{ background: 'var(--pc-code-bg)' }}>
+    <div className="flex-1 flex flex-col min-h-0 min-w-0" style={{ background: 'var(--pc-code-bg)' }}>
       <FormatToolbar value={fmt} onChange={setFmt} contentType={contentType} />
       {fmt === 'pretty' && (
-        <pre className="flex-1 overflow-auto p-3 text-xs font-mono whitespace-pre" style={{ color: 'var(--pc-code-text)' }}>
+        <pre
+          className="flex-1 min-w-0 overflow-auto p-3 text-xs font-mono whitespace-pre"
+          style={{ color: 'var(--pc-code-text)' }}
+        >
           {highlightJson(pretty)}
         </pre>
       )}
       {fmt === 'raw' && (
-        <pre className="flex-1 overflow-auto p-3 text-xs font-mono whitespace-pre-wrap break-all" style={{ color: 'var(--pc-code-text)' }}>
+        <pre
+          className="flex-1 min-w-0 overflow-auto p-3 text-xs font-mono whitespace-pre-wrap break-all"
+          style={{ color: 'var(--pc-code-text)' }}
+        >
           {body}
         </pre>
       )}
