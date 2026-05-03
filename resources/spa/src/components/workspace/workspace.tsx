@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useTabsStore } from '@/stores/tabs-store';
 import { useUiStore } from '@/stores/ui-store';
 import { useEnvironmentsStore } from '@/stores/environments-store';
@@ -13,10 +14,21 @@ import { ResponseViewer } from '../response-viewer/response-viewer';
 export function Workspace() {
   const tabs = useTabsStore((s) => s.tabs);
   const activeId = useTabsStore((s) => s.activeId);
+  const setActive = useTabsStore((s) => s.setActive);
   const setSending = useTabsStore((s) => s.setSending);
   const setResult = useTabsStore((s) => s.setResult);
   const layout = useUiStore((s) => s.workspaceLayout);
   const tab = tabs.find((t) => t.id === activeId) ?? null;
+
+  // Recover from inconsistent state — if activeId points to a tab that no
+  // longer exists (or is null while tabs has entries), promote the last
+  // tab. This can happen when an effect resurrects state mid-close, or when
+  // persisted state lands with a stale activeId.
+  useEffect(() => {
+    if (tabs.length > 0 && (activeId === null || !tabs.find((t) => t.id === activeId))) {
+      setActive(tabs[tabs.length - 1].id);
+    }
+  }, [activeId, tabs, setActive]);
 
   const send = async () => {
     if (!tab) return;

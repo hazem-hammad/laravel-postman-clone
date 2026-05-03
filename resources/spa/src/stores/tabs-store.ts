@@ -27,6 +27,14 @@ type OpenInput = Omit<Tab, 'id' | 'subTab' | 'lastResult' | 'sending' | 'dirty'>
 type State = {
   tabs: Tab[];
   activeId: string | null;
+  /**
+   * Short-lived suppression set, keyed by `${collectionId}::${requestId}`.
+   * Populated when the user closes a tab so the URL → store sync doesn't
+   * resurrect it from stale `useParams()` values during the brief window
+   * before react-router commits the navigate('/'). Each entry self-clears
+   * after a tick.
+   */
+  recentlyClosedKeys: string[];
   openRequestTab: (input: OpenInput) => void;
   closeTab: (id: string) => void;
   updateTab: (id: string, patch: Partial<Tab>) => void;
@@ -45,10 +53,22 @@ export const useTabsStore = create<State>()(
     (set, get) => ({
       tabs: [],
       activeId: null,
+      recentlyClosedKeys: [],
 
       openRequestTab(input) {
+        const key =
+          input.collectionId && input.requestId
+            ? `${input.collectionId}::${input.requestId}`
+            : null;
+        // If the user just closed this tab in the same tick, treat the
+        // open request as a no-op so a stale URL → store re-fire can't
+        // resurrect it. The suppression entry self-clears below, so a
+        // genuine intentional re-open (sidebar click) on the next tick
+        // succeeds normally.
+        if (key && get().recentlyClosedKeys.includes(key)) return;
+
         const existing = get().tabs.find(
-          (t) => t.collectionId === input.collectionId && t.requestId === input.requestId && t.collectionId !== null
+          (t) => t.collectionId === input.collectionId && t.requestId === input.requestId && t.collectionId !== null,
         );
         if (existing) {
           set({ activeId: existing.id });
@@ -66,12 +86,35 @@ export const useTabsStore = create<State>()(
 
       closeTab(id) {
         const { tabs, activeId } = get();
+        const closed = tabs.find((t) => t.id === id);
         const remaining = tabs.filter((t) => t.id !== id);
         let nextActive = activeId;
         if (activeId === id) {
           nextActive = remaining[remaining.length - 1]?.id ?? null;
         }
-        set({ tabs: remaining, activeId: nextActive });
+
+        const key =
+          closed && closed.collectionId && closed.requestId
+            ? `${closed.collectionId}::${closed.requestId}`
+            : null;
+
+        set({
+          tabs: remaining,
+          activeId: nextActive,
+          recentlyClosedKeys: key
+            ? [...get().recentlyClosedKeys, key]
+            : get().recentlyClosedKeys,
+        });
+
+        if (key) {
+          // Clear the suppression after a tick so subsequent intentional
+          // opens (sidebar click, deep link paste) work as expected.
+          setTimeout(() => {
+            set({
+              recentlyClosedKeys: get().recentlyClosedKeys.filter((k) => k !== key),
+            });
+          }, 0);
+        }
       },
 
       updateTab(id, patch) {
@@ -119,6 +162,9 @@ export const useTabsStore = create<State>()(
       partialize: (s) => ({
         tabs: s.tabs.map((t) => ({ ...t, lastResult: null, sending: false })),
         activeId: s.activeId,
+        // Never persist the suppression list — it's purely an in-memory
+        // race-prevention guard scoped to a single click.
+        recentlyClosedKeys: [],
       }),
       // v0 → v1: tabs gained per-tab subTab. Default existing tabs to
       // 'body' so they don't crash on rehydrate with subTab=undefined.
@@ -136,6 +182,19 @@ export const useTabsStore = create<State>()(
           };
         }
         return persisted as State;
+      },
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        // If the persisted activeId points to a tab that no longer exists,
+        // promote the last surviving tab — otherwise the workspace would
+        // mount in the "tabs visible but EmptyState shown" inconsistent
+        // state until the user clicks a tab manually.
+        if (
+          state.activeId &&
+          !state.tabs.find((t) => t.id === state.activeId)
+        ) {
+          state.activeId = state.tabs[state.tabs.length - 1]?.id ?? null;
+        }
       },
     }
   )
